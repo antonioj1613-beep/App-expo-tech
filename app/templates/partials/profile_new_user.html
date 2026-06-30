@@ -1,0 +1,78 @@
+<div class="glass rounded-2xl relative overflow-hidden">
+  <div class="h-32 bg-gradient-primary relative"><div class="absolute inset-0 bg-gradient-glow opacity-60"></div></div>
+  <div class="p-6 -mt-12 relative">
+    <div class="flex items-end justify-between flex-wrap gap-4">
+      <div class="flex items-end gap-4">
+        <div class="h-24 w-24 rounded-full bg-gradient-primary grid place-items-center text-primary-foreground text-2xl font-bold ring-4 ring-background shadow-elegant">{{ initials }}</div>
+        <div class="pb-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h2 class="font-display text-2xl font-bold tracking-tight">{{ display_name }}</h2>
+            <span class="inline-flex items-center bg-primary/15 text-primary text-xs px-2 py-0.5 rounded-full">New learner</span>
+          </div>
+          <p class="text-sm text-muted-foreground">@{{ username }} · Level 1</p>
+        </div>
+      </div>
+      <a href="{% url 'settings' %}" class="btn btn-glass"><i data-lucide="settings" class="h-4 w-4"></i> Complete setup</a>
+    </div>
+    <div class="mt-6 grid sm:grid-cols-2 gap-4 text-sm">
+      <div class="flex items-center gap-2 text-muted-foreground"><i data-lucide="mail" class="h-4 w-4"></i> {{ email }}</div>
+      <div class="flex items-center gap-2 text-muted-foreground"><i data-lucide="calendar" class="h-4 w-4"></i> Joined {{ joined_label }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="bg-card rounded-2xl border border-border p-6 md:p-8">
+  <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+    <div>
+      <h3 class="font-display text-lg font-semibold">Finish setting up your profile</h3>
+      <p class="text-sm text-muted-foreground mt-1">A few details help us personalize lessons and goals.</p>
+    </div>
+    <div class="shrink-0 text-right">
+      <p class="text-xs text-muted-foreground mb-1.5">{{ setup_done }} of {{ setup_total }} complete</p>
+      <div class="h-2 w-40 sm:w-48 rounded-full bg-secondary overflow-hidden ml-auto">
+        <div class="h-full bg-gradient-primary rounded-full transition-all" style="width:{% widthratio setup_done setup_total 100 %}%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="space-y-3">
+    {% for task in setup_tasks %}
+    <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-border bg-secondary/20 hover:bg-secondary/35 transition-colors">
+      <div class="flex items-start gap-3 flex-1 min-w-0">
+        <div class="h-9 w-9 shrink-0 rounded-full border border-border bg-background grid place-items-center text-sm font-semibold text-muted-foreground">
+          {{ forloop.counter }}
+        </div>
+        <div class="min-w-0">
+          <p class="font-medium">{{ task.title }}</p>
+          <p class="text-sm text-muted-foreground mt-0.5">{{ task.description }}</p>
+        </div>
+      </div>
+      <a href="{% url task.url %}" class="btn btn-hero btn-sm shrink-0 w-full sm:w-auto">{{ task.button }}</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="grid md:grid-cols-2 gap-6">
+  <div class="bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold">Account details</h3>
+    <p class="text-sm text-muted-foreground mb-4">Created when you registered</p>
+    <div class="space-y-4">
+      <div class="space-y-1.5"><label class="text-sm font-medium">Username</label><input value="{{ username }}" class="field h-10" readonly /></div>
+      <div class="space-y-1.5"><label class="text-sm font-medium">Email</label><input value="{{ email }}" class="field h-10" readonly /></div>
+      <p class="text-xs text-muted-foreground">You can update learning preferences in Settings after your first lesson.</p>
+    </div>
+  </div>
+  <div class="bg-card rounded-2xl border border-border p-6">
+    <div class="insights-empty text-center py-4">
+      <div class="h-12 w-12 rounded-xl bg-primary/15 text-primary grid place-items-center mx-auto mb-3">
+        <i data-lucide="user" class="h-6 w-6"></i>
+      </div>
+      <h3 class="font-semibold">No learning preferences yet</h3>
+      <p class="text-sm text-muted-foreground mt-2">Take the level test and choose a goal to unlock personalized recommendations.</p>
+      <a href="{% url 'levels' %}" class="btn btn-hero btn-sm mt-4">
+        Get started <i data-lucide="arrow-right" class="h-4 w-4"></i>
+      </a>
+    </div>
+  </div>
+</div>

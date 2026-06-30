@@ -1,0 +1,40 @@
+---
+description: Weekday 5 PM GitHub save for App-expo-tech changes
+alwaysApply: true
+---
+
+# GitHub weekday save (5 PM)
+
+Remote: https://github.com/antonioj1613-beep/App-expo-tech.git  
+Branch: `main`  
+Working directory: `App-expo-tech/`
+
+## Schedule
+
+- **Monday–Friday at 17:00** (local time): save all changes to GitHub.
+- **Do not save today** unless the user explicitly asks.
+- **Skip** if there are no uncommitted changes (no empty commits).
+
+## How to save
+
+From `App-expo-tech/`:
+
+```powershell
+.\scripts\save-to-github.ps1
+```
+
+The script already:
+1. `git add -A`
+2. Exits with no commit if `git status --porcelain` is empty
+3. Commits with message `Guardado automático YYYY-MM-DD HH:mm`
+4. Pushes to `origin main`
+
+## Manual save
+
+Run the same script anytime the user asks to save or push to GitHub.
+
+## Do not
+
+- Push secrets (`.env`, credentials)
+- Force-push to `main`
+- Commit when the user has not made changes and has not asked for a save

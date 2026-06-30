@@ -1,41 +1,53 @@
 {% extends "base_app.html" %}
-{% block title %}Reading — Lisa{% endblock %}
+{% load static %}
+{% block title %}Reading — Learning Skills{% endblock %}
 {% block main %}
 {% include "partials/header.html" with title="Reading Part" subtitle=skill.subtitle %}
 <main class="flex-1 p-4 md:p-8">
+  {% if page_state.coming_soon %}
+  {% include "partials/skill_coming_soon.html" with icon="book-open" active="reading" %}
+  {% else %}
   <div class="grid lg:grid-cols-[1fr_380px] gap-6 max-w-6xl mx-auto">
     <div class="glass rounded-2xl">
       <div class="p-8">
+        <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-3">{{ lesson_title }}</p>
         <pre class="font-sans text-[15px] leading-relaxed whitespace-pre-wrap text-foreground/90">{{ passage }}</pre>
       </div>
     </div>
 
     <div class="glass rounded-2xl">
       <div class="p-6">
-        <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-2">Question 1 / 4</p>
-        <h2 class="font-display text-lg font-semibold leading-snug">What is the main purpose of the email?</h2>
-        <div class="mt-5 space-y-2.5">
+        <p id="readingQuestionLabel" class="text-xs uppercase tracking-widest text-primary font-semibold mb-2">{{ question_label }}</p>
+        <h2 id="readingQuestionPrompt" class="font-display text-lg font-semibold leading-snug">{{ question_prompt }}</h2>
+        <div id="readingOptions" class="mt-5 space-y-2.5">
           {% for opt in options %}
-          <button onclick="selectOpt(this)" class="opt w-full text-left p-3.5 rounded-xl border transition-all {% if forloop.counter0 == selected %}border-primary bg-primary/10 shadow-glow{% else %}border-border bg-secondary/40 hover:border-primary/40 hover:bg-secondary/70{% endif %}">
+          <button type="button" data-i="{{ forloop.counter0 }}" class="reading-opt w-full text-left p-3.5 rounded-xl border border-border bg-secondary/40 hover:border-primary/40 hover:bg-secondary/70 transition-all">
             <span class="text-sm font-medium leading-snug">{{ opt }}</span>
           </button>
           {% endfor %}
         </div>
-        <button class="btn btn-hero btn-lg w-full mt-6">Select answer <i data-lucide="chevron-right" class="h-4 w-4"></i></button>
+        <p id="readingFeedback" class="hidden mt-4 text-sm rounded-xl p-3 border"></p>
+        <button id="readingSubmitBtn" type="button" class="btn btn-hero btn-lg w-full mt-6" disabled>
+          Submit answer <i data-lucide="chevron-right" class="h-4 w-4"></i>
+        </button>
+        <a id="readingNextBtn" href="{% url 'reading' %}" class="btn btn-glass btn-lg w-full mt-3 hidden">Next lesson <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
       </div>
     </div>
   </div>
+
+  <div
+    id="reading-config"
+    class="hidden"
+    data-lesson-id="{{ lesson_id }}"
+    data-submit-url="{% url 'reading_submit' %}"
+    data-csrf-token="{{ csrf_token }}"
+    data-already-completed="{% if already_completed %}1{% else %}0{% endif %}"
+  ></div>
+  {% endif %}
 </main>
 {% endblock %}
 {% block scripts %}
-<script>
-  function selectOpt(el) {
-    document.querySelectorAll(".opt").forEach((o) => {
-      o.classList.remove("border-primary", "bg-primary/10", "shadow-glow");
-      o.classList.add("border-border", "bg-secondary/40", "hover:border-primary/40", "hover:bg-secondary/70");
-    });
-    el.classList.add("border-primary", "bg-primary/10", "shadow-glow");
-    el.classList.remove("border-border", "bg-secondary/40", "hover:border-primary/40", "hover:bg-secondary/70");
-  }
-</script>
+{% if page_state and not page_state.coming_soon %}
+<script src="{% static 'app/reading.js' %}"></script>
+{% endif %}
 {% endblock %}

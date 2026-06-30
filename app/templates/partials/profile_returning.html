@@ -1,0 +1,46 @@
+<div class="glass rounded-2xl relative overflow-hidden">
+  <div class="h-32 bg-gradient-primary relative"><div class="absolute inset-0 bg-gradient-glow opacity-60"></div></div>
+  <div class="p-6 -mt-12 relative">
+    <div class="flex items-end justify-between flex-wrap gap-4">
+      <div class="flex items-end gap-4">
+        <div class="h-24 w-24 rounded-full bg-gradient-primary grid place-items-center text-primary-foreground text-2xl font-bold ring-4 ring-background shadow-elegant">{{ initials }}</div>
+        <div class="pb-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h2 class="font-display text-2xl font-bold tracking-tight">{{ display_name }}</h2>
+            {% if is_pro %}
+            <span class="inline-flex items-center bg-gradient-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full"><i data-lucide="crown" class="h-3 w-3 mr-1"></i> Pro</span>
+            {% endif %}
+          </div>
+          <p class="text-sm text-muted-foreground">@{{ username }} · Level {{ level }} {{ level_label }}</p>
+        </div>
+      </div>
+      <a href="{% url 'settings' %}" class="btn btn-glass"><i data-lucide="pencil" class="h-4 w-4"></i> Edit profile</a>
+    </div>
+    <div class="mt-6 grid sm:grid-cols-3 gap-4 text-sm">
+      <div class="flex items-center gap-2 text-muted-foreground"><i data-lucide="mail" class="h-4 w-4"></i> {{ email }}</div>
+      <div class="flex items-center gap-2 text-muted-foreground"><i data-lucide="globe" class="h-4 w-4"></i> {{ native_language }}</div>
+      <div class="flex items-center gap-2 text-muted-foreground"><i data-lucide="calendar" class="h-4 w-4"></i> Joined {{ joined_label }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid md:grid-cols-2 gap-6">
+  <div class="bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold">Account details</h3><p class="text-sm text-muted-foreground mb-4">Personal information</p>
+    <div class="space-y-4">
+      <div class="space-y-1.5"><label class="text-sm font-medium">Display name</label><input value="{{ display_name }}" class="field h-10" readonly /></div>
+      <div class="space-y-1.5"><label class="text-sm font-medium">Username</label><input value="{{ username }}" class="field h-10" readonly /></div>
+      <div class="space-y-1.5"><label class="text-sm font-medium">Email</label><input value="{{ email }}" class="field h-10" readonly /></div>
+      <a href="{% url 'settings' %}" class="btn btn-hero w-full">Manage in settings</a>
+    </div>
+  </div>
+  <div class="bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold">Learning preferences</h3><p class="text-sm text-muted-foreground mb-4">How you like to learn</p>
+    <div class="space-y-4">
+      <div class="space-y-1.5"><label class="text-sm font-medium">Native language</label><input value="{{ native_language }}" class="field h-10" readonly /></div>
+      <div class="space-y-1.5"><label class="text-sm font-medium">App language</label><input value="{{ app_language }}" class="field h-10" readonly /></div>
+      <div class="space-y-1.5"><label class="text-sm font-medium">Daily goal</label><input value="{{ daily_goal_minutes }} minutes" class="field h-10" readonly /></div>
+      <a href="{% url 'settings' %}" class="btn btn-hero w-full">Update preferences</a>
+    </div>
+  </div>
+</div>

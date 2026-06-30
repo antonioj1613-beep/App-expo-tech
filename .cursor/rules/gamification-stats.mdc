@@ -1,0 +1,14 @@
+---
+description: Gamification and stats architecture for Learning Skills
+alwaysApply: true
+---
+
+# Stats & gamification
+
+- **XP/accuracy rules** live in `app/gamification.py` — never duplicate constants in views or skill modules.
+- **Aggregation & recording** live in `app/stats_service.py` — single source of truth for dashboard, statistics, and skill progress updates.
+- **Practice sessions**: every completed practice writes a `PracticeSession` row (Speaking also keeps `SpeakingSession` for transcripts).
+- **words_learned**: count of `UserVocabularyMastery` rows with `mastered_at` set (3 correct answers per word).
+- **Content**: hybrid model — `Skill` / `VocabularyWord` seeded via management commands; progress in DB.
+
+When adding a new skill's backend, call `record_practice_session()` with the appropriate `skill_slug` and use gamification helpers for XP/accuracy.

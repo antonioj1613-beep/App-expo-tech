@@ -8,18 +8,31 @@ from pathlib import Path
 
 from .auth_utils import check_password, hash_password
 from .decorators import login_required
+from .levels_service import build_levels_page_skills
 from .speaking_views import speaking_page_context
-from .models import Skill, User, UserSkillProgress
+from .models import Skill, User
 from .stats_service import (
+    build_dashboard_new_user_context,
+    build_dashboard_returning_context,
+    build_notification_items,
     build_progress_skills_list,
     build_skill_context,
     build_skills_dashboard_list,
+    build_statistics_cards,
     ensure_user_skill_progress,
     format_accuracy,
     format_number,
     format_study_hours,
+    monthly_xp_data,
+    notification_preview_hints,
+    profile_setup_tasks,
+    profile_stats_cards,
+    study_seconds_by_skill_this_month,
+    vocabulary_stats_for_user,
+    weekly_accuracy_trend,
+    weekly_xp_data,
 )
-from .user_helpers import ensure_profile, get_logged_in_user, is_new_user, time_greeting
+from .user_helpers import build_app_user_context, ensure_profile, get_logged_in_user, is_new_user, time_greeting, user_initials
 
 
 def _auth_context(mode, **extra):
@@ -164,15 +177,6 @@ def database_browser(request):
 # ---------------------------------------------------------------------------
 # App pages (login required)
 # ---------------------------------------------------------------------------
-def _profile_stats_cards(profile):
-    return [
-        {"label": "Total XP", "value": format_number(profile.total_xp), "suffix": "", "icon": "zap", "color": "text-primary"},
-        {"label": "Avg accuracy", "value": format_accuracy(profile.avg_accuracy).replace("%", ""), "suffix": "%" if profile.avg_accuracy is not None else "", "icon": "target", "color": "text-success"},
-        {"label": "Study hours", "value": format_study_hours(profile.study_hours), "suffix": "", "icon": "clock", "color": "text-accent"},
-        {"label": "Words learned", "value": format_number(profile.words_learned), "suffix": "", "icon": "book-open", "color": "text-warning"},
-    ]
-
-
 @login_required
 def dashboard(request):
     user = get_logged_in_user(request)
@@ -181,154 +185,32 @@ def dashboard(request):
         return redirect("login")
 
     ensure_user_skill_progress(user)
-    profile = ensure_profile(user)
     new_user = is_new_user(user)
     name = user.username.replace("_", " ").title()
+    first_name = name.split()[0]
 
     if new_user:
-        ctx = {
-            "active": "dashboard",
-            "is_new_user": True,
-            "page_title": f"{time_greeting()}, {name.split()[0]}",
-            "page_subtitle": "Let's take your first steps to personalize your English.",
-            "stats": [
-                {"label": "Total XP", "value": "0", "suffix": "", "icon": "zap", "color": "text-primary"},
-                {"label": "Avg accuracy", "value": "—", "suffix": "", "icon": "target", "color": "text-success"},
-                {"label": "Study hours", "value": "0h", "suffix": "", "icon": "clock", "color": "text-accent"},
-                {"label": "Words learned", "value": "0", "suffix": "", "icon": "book-open", "color": "text-warning"},
-            ],
-            "setup_tasks": [
-                {
-                    "title": "Take the level test",
-                    "description": "Find your starting point so lessons match your level.",
-                    "url": "levels",
-                    "button": "Start",
-                    "done": False,
-                },
-                {
-                    "title": "Choose your goal",
-                    "description": "Tell us why you're learning — work, travel, exams, or fun.",
-                    "url": "settings",
-                    "button": "Choose",
-                    "done": False,
-                },
-                {
-                    "title": "Your first lesson",
-                    "description": "A short lesson to get a feel for how Learning Skills works.",
-                    "url": "listening",
-                    "button": "Go",
-                    "done": False,
-                },
-            ],
-            "setup_done": 0,
-            "setup_total": 3,
-            "starter_lessons": [
-                {
-                    "tag": "Speaking",
-                    "tag_tone": "success",
-                    "title": "Greetings & introductions",
-                    "duration": "5 min",
-                    "url": "speaking",
-                },
-                {
-                    "tag": "Vocabulary",
-                    "tag_tone": "primary",
-                    "title": "Everyday vocabulary",
-                    "duration": "6 min",
-                    "url": "vocabulary",
-                },
-                {
-                    "tag": "Listening",
-                    "tag_tone": "accent",
-                    "title": "Your first guided dialogue",
-                    "duration": "7 min",
-                    "url": "listening",
-                },
-            ],
-        }
+        ctx = build_dashboard_new_user_context(
+            user,
+            first_name=first_name,
+            page_title=f"{time_greeting()}, {first_name}",
+        )
         return render(request, "dashboard.html", ctx)
 
-    skills = build_skills_dashboard_list(user)
-    lessons_done = sum(
-        UserSkillProgress.objects.filter(user=user).values_list("lessons_completed", flat=True)
-    )
-
-    ctx = {
-        "active": "dashboard",
-        "is_new_user": False,
-        "page_title": "Dashboard",
-        "page_subtitle": f"Welcome back, {name.split()[0]} — let's keep the streak alive 🔥",
-        "stats": _profile_stats_cards(profile),
-        "skills": skills,
-        "lessons_done": lessons_done,
-        "week_xp_total": sum(_weekly_xp_data(user)),
-        "week_data": _weekly_xp_data(user),
-        "week_labels": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-        "streak_days": profile.streak_days,
-    }
+    ctx = build_dashboard_returning_context(user, first_name=first_name)
     return render(request, "dashboard.html", ctx)
-
-
-def _weekly_xp_data(user):
-    """XP earned per weekday (Mon–Sun) for the current calendar week."""
-    from datetime import timedelta
-
-    from django.utils import timezone
-
-    from .models import SpeakingSession
-
-    today = timezone.localdate()
-    monday = today - timedelta(days=today.weekday())
-    buckets = [0] * 7
-    sessions = SpeakingSession.objects.filter(
-        user=user,
-        created_at__date__gte=monday,
-        created_at__date__lte=monday + timedelta(days=6),
-    )
-    for session in sessions:
-        day_index = (session.created_at.date() - monday).days
-        if 0 <= day_index < 7:
-            buckets[day_index] += session.xp_earned
-    return buckets
 
 
 @login_required
 def levels(request):
     user = get_logged_in_user(request)
-    items = []
-    for n in range(1, 16):
-        items.append({"n": n, "unlocked": n <= 2, "completed": n == 1})
-
-    skill_rows = Skill.objects.all()
-    skills = []
-    for skill in skill_rows:
-        meta = {
-            "listening": ("headphones", "Train your ear with real-world audio", "listening"),
-            "reading": ("book-open", "Build comprehension from texts at your level", "reading"),
-            "writing": ("pen-line", "Practice writing with instant AI feedback", "writing"),
-            "vocabulary": ("graduation-cap", "Grow your word bank with smart repetition", "vocabulary"),
-            "speaking": ("mic", "Voice conversation practice with AI tutors Miles & Maya", "speaking"),
-        }.get(skill.slug, ("layers", "", skill.slug))
-        lessons_label = (
-            "Voice chat" if skill.slug == "speaking" else f"{skill.total_lessons}+"
-        )
-        skills.append(
-            {
-                "id": skill.slug,
-                "name": skill.name,
-                "icon": meta[0],
-                "tagline": meta[1],
-                "lessons": lessons_label,
-                "url": meta[2],
-            }
-        )
+    skills = build_levels_page_skills(user)
 
     return render(
         request,
         "levels.html",
         {
             "active": "levels",
-            "levels": items,
             "skills": skills,
             **speaking_page_context(request),
         },
@@ -336,79 +218,46 @@ def levels(request):
 
 
 @login_required
-def listening(request):
-    user = get_logged_in_user(request)
-    skill = build_skill_context(user, "listening")
-    options = [
-        "A natural disaster recovery",
-        "A new remote work policy",
-        "A quarterly sales report",
-        "An employee feedback session",
-    ]
-    return render(request, "listening.html", {"active": "listening", "options": options, "skill": skill})
-
-
-@login_required
-def reading(request):
-    user = get_logged_in_user(request)
-    skill = build_skill_context(user, "reading")
-    passage = """From: Sarah Chen, HR Director
-To: All Employees
-Subject: New Remote Work Guidelines
-
-Dear team,
-
-Following last quarter's feedback, we are rolling out an updated remote work policy that takes effect on March 1st. Each team will be required to coordinate at least two in-office days per week, with the specific days chosen by the team lead in collaboration with each member.
-
-We believe this hybrid model best balances flexibility with collaboration. Managers will host a kickoff session next week to discuss expectations and answer your questions.
-
-Best,
-Sarah"""
-    options = [
-        "To request feedback on employees",
-        "To notify employees of a new remote work policy",
-        "To introduce a new supervisor",
-        "To announce a salary adjustment",
-    ]
-    return render(request, "reading.html", {"active": "reading", "passage": passage, "options": options, "selected": 1, "skill": skill})
-
-
-@login_required
 def writing(request):
     user = get_logged_in_user(request)
     skill = build_skill_context(user, "writing")
-    metrics = [
-        {"label": "Grammar", "score": 92, "c": "text-success"},
-        {"label": "Clarity", "score": 84, "c": "text-primary"},
-        {"label": "Tone", "score": 76, "c": "text-accent"},
-        {"label": "Vocabulary", "score": 88, "c": "text-success"},
-    ]
-    return render(request, "writing.html", {"active": "writing", "metrics": metrics, "skill": skill})
+    from .lesson_service import build_lesson_context, get_skill_page_state
+
+    page_state = get_skill_page_state(user, "writing")
+    lesson = page_state["next_lesson"]
+    ctx = {
+        "active": "writing",
+        "skill": skill,
+        "page_state": page_state,
+    }
+    if lesson:
+        ctx.update(build_lesson_context(lesson, user, "writing"))
+    return render(request, "writing.html", ctx)
 
 
 @login_required
 def vocabulary(request):
     user = get_logged_in_user(request)
-    profile = ensure_profile(user)
     skill = build_skill_context(user, "vocabulary")
-    words = [
-        {"w": "Ephemeral", "ipa": "/ɪˈfɛm(ə)rəl/", "meaning": "Lasting for a very short time.", "ex": "The beauty of the sunset is ephemeral.", "lv": "C1", "mastered": True},
-        {"w": "Resilient", "ipa": "/rɪˈzɪlɪənt/", "meaning": "Able to recover quickly from difficulty.", "ex": "She remained resilient throughout the project.", "lv": "B2", "mastered": True},
-        {"w": "Pragmatic", "ipa": "/præɡˈmætɪk/", "meaning": "Dealing with things sensibly and realistically.", "ex": "A pragmatic approach works best.", "lv": "C1", "mastered": False},
-        {"w": "Ubiquitous", "ipa": "/juːˈbɪkwɪtəs/", "meaning": "Present, appearing, or found everywhere.", "ex": "Smartphones are ubiquitous today.", "lv": "C2", "mastered": False},
-        {"w": "Candid", "ipa": "/ˈkændɪd/", "meaning": "Truthful and straightforward.", "ex": "I appreciate your candid feedback.", "lv": "B2", "mastered": False},
-        {"w": "Meticulous", "ipa": "/mɪˈtɪkjʊləs/", "meaning": "Showing great attention to detail.", "ex": "He is meticulous in his work.", "lv": "C1", "mastered": True},
-    ]
+    from .lesson_service import build_lesson_context, get_skill_page_state
+
+    page_state = get_skill_page_state(user, "vocabulary")
+    lesson = page_state["next_lesson"]
+    ctx = {
+        "active": "vocabulary",
+        "skill": skill,
+        "page_state": page_state,
+        "vocab_stats": vocabulary_stats_for_user(user),
+    }
+    if lesson:
+        ctx.update(build_lesson_context(lesson, user, "vocabulary"))
     stats = [
-        {"l": "Learned", "v": str(profile.words_learned)},
-        {"l": "Mastered", "v": "0"},
-        {"l": "Review due", "v": "0"},
+        {"l": "Learned", "v": str(ctx["vocab_stats"]["learned"])},
+        {"l": "Mastered", "v": str(ctx["vocab_stats"]["mastered"])},
+        {"l": "Review due", "v": str(ctx["vocab_stats"]["review_due"])},
     ]
-    return render(
-        request,
-        "vocabulary.html",
-        {"active": "vocabulary", "words": words, "stats": stats, "skill": skill},
-    )
+    ctx["stats"] = stats
+    return render(request, "vocabulary.html", ctx)
 
 
 @login_required
@@ -508,46 +357,112 @@ def statistics(request):
     skills = build_skills_dashboard_list(user)
     skill_labels = [s["name"] for s in skills if s["slug"] != "speaking"]
     skill_data = [s["progress"] for s in skills if s["slug"] != "speaking"]
-    pie_data = skill_data or [0, 0, 0, 0]
+    monthly_labels, monthly_data = monthly_xp_data(user)
+    pie_labels, pie_data = study_seconds_by_skill_this_month(user)
+    acc_labels, acc_data = weekly_accuracy_trend(user)
+
+    if not any(acc_data) and profile.avg_accuracy is not None:
+        acc_data = [float(profile.avg_accuracy)] * len(acc_labels)
 
     ctx = {
         "active": "statistics",
         "is_new_user": False,
         "page_subtitle": "Deep insights into your learning performance",
-        "cards": [
-            {"l": "Total XP", "v": format_number(profile.total_xp), "d": "From all practice", "trend": "success"},
-            {"l": "Avg accuracy", "v": format_accuracy(profile.avg_accuracy), "d": "From scored sessions", "trend": "success"},
-            {"l": "Study hours", "v": format_study_hours(profile.study_hours), "d": "Time practicing", "trend": "success"},
-            {"l": "Words learned", "v": format_number(profile.words_learned), "d": "Vocabulary progress", "trend": "primary"},
-        ],
-        "monthly_labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"],
-        "monthly_data": [profile.total_xp // 8] * 8,
+        "cards": build_statistics_cards(user, profile),
+        "monthly_labels": monthly_labels,
+        "monthly_data": monthly_data,
         "skill_labels": skill_labels,
         "skill_data": skill_data,
-        "pie_labels": skill_labels,
+        "pie_labels": pie_labels,
         "pie_data": pie_data,
-        "acc_labels": ["W1", "W2", "W3", "W4", "W5", "W6", "W7"],
-        "acc_data": [float(profile.avg_accuracy or 0)] * 7,
+        "acc_labels": acc_labels,
+        "acc_data": acc_data,
     }
     return render(request, "statistics.html", ctx)
 
 
 @login_required
 def profile(request):
-    return render(request, "profile.html", {"active": "profile"})
+    user = get_logged_in_user(request)
+    if not user:
+        return redirect("login")
+
+    profile_row = ensure_profile(user)
+    new_user = is_new_user(user)
+    joined_label = user.created_at.strftime("%b %Y")
+    display_name = user.username.replace("_", " ").title()
+    initials = user_initials(user.username)
+
+    if new_user:
+        tasks = profile_setup_tasks()
+        ctx = {
+            "active": "profile",
+            "is_new_user": True,
+            "page_subtitle": "Let's set up your learner profile",
+            "username": user.username,
+            "email": user.email,
+            "display_name": display_name,
+            "initials": initials,
+            "joined_label": joined_label,
+            "setup_tasks": tasks,
+            "setup_done": 0,
+            "setup_total": len(tasks),
+        }
+        return render(request, "profile.html", ctx)
+
+    app_ctx = build_app_user_context(user)
+    ctx = {
+        "active": "profile",
+        "is_new_user": False,
+        "page_subtitle": "Manage your account information",
+        "username": user.username,
+        "email": user.email,
+        "display_name": display_name,
+        "initials": initials,
+        "joined_label": joined_label,
+        "native_language": profile_row.native_language,
+        "app_language": profile_row.app_language,
+        "daily_goal_minutes": 20,
+        "level": app_ctx["level"],
+        "level_label": app_ctx["level_label"],
+        "is_pro": False,
+    }
+    return render(request, "profile.html", ctx)
 
 
 @login_required
 def notifications(request):
-    items = [
-        {"icon": "trophy", "t": "You earned the 'Perfect Week' badge!", "d": "2h ago", "new": True, "c": "text-warning bg-warning/15"},
-        {"icon": "flame", "t": "12-day streak — keep it going!", "d": "5h ago", "new": True, "c": "text-warning bg-warning/15"},
-        {"icon": "sparkles", "t": "New lesson available: 'Business Emails'", "d": "Yesterday", "new": True, "c": "text-primary bg-primary/15"},
-        {"icon": "message-square", "t": "Your writing was reviewed by AI tutor", "d": "2d ago", "new": False, "c": "text-accent bg-accent/15"},
-        {"icon": "trophy", "t": "Completed Listening Level 7", "d": "3d ago", "new": False, "c": "text-success bg-success/15"},
-        {"icon": "bell", "t": "Weekly summary is ready", "d": "Last week", "new": False, "c": "text-muted-foreground bg-muted"},
-    ]
-    return render(request, "notifications.html", {"active": "notifications", "items": items})
+    user = get_logged_in_user(request)
+    if not user:
+        return redirect("login")
+
+    new_user = is_new_user(user)
+
+    if new_user:
+        return render(
+            request,
+            "notifications.html",
+            {
+                "active": "notifications",
+                "is_new_user": True,
+                "page_subtitle": "No updates yet",
+                "hints": notification_preview_hints(),
+            },
+        )
+
+    items = build_notification_items(user)
+    unread_count = sum(1 for item in items if item.get("new"))
+    return render(
+        request,
+        "notifications.html",
+        {
+            "active": "notifications",
+            "is_new_user": False,
+            "page_subtitle": f"{unread_count} new update{'s' if unread_count != 1 else ''}" if unread_count else "You're all caught up",
+            "items": items,
+            "unread_count": unread_count,
+        },
+    )
 
 
 @login_required

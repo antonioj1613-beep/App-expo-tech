@@ -1,0 +1,26 @@
+{% extends "staff/base_staff.html" %}
+{% block title %}Lesson Builder — Learning Skills{% endblock %}
+
+{% block content %}
+<p class="staff-lead">
+  Create and edit levels for Listening, Reading, Writing, and Vocabulary without touching code.
+  Speaking is excluded — it uses live AI conversation.
+</p>
+
+<div class="staff-grid">
+  {% for row in skills %}
+  <a href="{% url 'staff_lesson_list' skill_slug=row.slug %}" class="staff-card staff-card-link">
+    <div class="staff-card-icon">
+      <i data-lucide="{{ row.icon }}"></i>
+    </div>
+    <h2 class="staff-card-title">{{ row.skill.name }}</h2>
+    <p class="staff-card-blurb">{{ row.blurb }}</p>
+    <p class="staff-card-meta">
+      {{ row.published }} published · {{ row.count }} total lesson{{ row.count|pluralize }}
+    </p>
+  </a>
+  {% empty %}
+  <p class="staff-empty">No skills found. Run <code>seed_skills</code> first.</p>
+  {% endfor %}
+</div>
+{% endblock %}

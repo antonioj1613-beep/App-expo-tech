@@ -26,37 +26,57 @@
     role="tabpanel"
     data-skill="{{ skill.id }}"
   >
-    {% if skill.id == "speaking" %}
+    {% if skill.is_speaking %}
     <div class="max-w-6xl mx-auto">
       {% include "partials/speaking_panel.html" %}
+    </div>
+    {% elif skill.coming_soon %}
+    <div class="max-w-2xl mx-auto glass rounded-2xl p-10 text-center">
+      <div class="h-16 w-16 rounded-2xl bg-primary/15 text-primary grid place-items-center mx-auto mb-4">
+        <i data-lucide="{{ skill.icon }}" class="h-8 w-8"></i>
+      </div>
+      <h3 class="font-display text-xl font-bold">{{ skill.name }}</h3>
+      <p class="text-sm text-muted-foreground mt-2 max-w-md mx-auto">{{ skill.tagline }}</p>
+      <p class="text-base font-medium mt-6">{{ skill.coming_soon_message }}</p>
+      <p class="text-sm text-muted-foreground mt-2">
+        {% if skill.catalog_complete %}
+          You've finished every available lesson. New levels will show up here when they're added.
+        {% else %}
+          Levels for this skill haven't been published yet.
+        {% endif %}
+      </p>
+      {% if skill.has_lessons %}
+      <a href="{% url skill.continue_url %}" class="btn btn-glass btn-sm mt-5">Review skill</a>
+      {% endif %}
     </div>
     {% else %}
     <div class="grid lg:grid-cols-[300px_1fr] gap-6">
       <div class="glass rounded-2xl relative overflow-hidden">
         <div class="absolute inset-0 bg-gradient-glow opacity-60"></div>
         <div class="relative p-6 flex flex-col items-center text-center min-h-[280px] justify-center">
-          <div class="h-20 w-20 rounded-3xl bg-gradient-primary grid place-items-center shadow-glow mb-5 {% if forloop.first %}animate-float{% endif %}">
+          <div class="h-20 w-20 rounded-3xl bg-gradient-primary grid place-items-center shadow-glow mb-5">
             <i data-lucide="{{ skill.icon }}" class="h-10 w-10 text-primary-foreground"></i>
           </div>
           <h3 class="font-display text-xl font-bold">{{ skill.name }}</h3>
           <p class="text-sm text-muted-foreground mt-1 max-w-[220px]">{{ skill.tagline }}</p>
-          <p class="text-xs text-muted-foreground mt-2">15 levels · {{ skill.lessons }} lessons</p>
-          <a href="{% url skill.url %}" class="btn btn-hero mt-5">
+          <p class="text-xs text-muted-foreground mt-2">{{ skill.level_cards|length }} level{{ skill.level_cards|length|pluralize }} · {{ skill.lessons_label }} lessons</p>
+          <div class="w-full max-w-[200px] mt-4">
+            <div class="h-1.5 rounded-full bg-secondary overflow-hidden">
+              <div class="h-full bg-gradient-primary rounded-full transition-all duration-300" style="width:{{ skill.progress_percent }}%"></div>
+            </div>
+            <p class="text-[10px] text-muted-foreground mt-1.5">{{ skill.progress_percent }}% complete</p>
+          </div>
+          <a href="{% url skill.continue_url %}" class="btn btn-hero mt-5">
             <i data-lucide="play" class="h-4 w-4"></i> Continue
           </a>
-          <div class="mt-5 flex gap-1.5 skill-dots" aria-hidden="true">
-            {% for dot in skills %}
-            <span class="skill-dot h-1.5 rounded-full bg-muted {% if dot.id == skill.id %}w-6 bg-primary{% else %}w-1.5{% endif %}" data-skill="{{ dot.id }}"></span>
-            {% endfor %}
-          </div>
         </div>
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {% for lv in levels %}
+        {% for lv in skill.level_cards %}
         <a
           href="{% if lv.unlocked %}{% url skill.url %}{% else %}#{% endif %}"
-          class="bg-card rounded-2xl border border-border group transition-all {% if lv.unlocked %}hover:shadow-glow hover:-translate-y-1 hover:border-primary/40 cursor-pointer{% else %}opacity-60 pointer-events-none{% endif %}"
+          class="bg-card rounded-2xl border border-border group transition-all {% if lv.unlocked %}hover:shadow-glow hover:-translate-y-1 hover:border-primary/40 cursor-pointer{% if lv.is_current %} ring-2 ring-primary/40{% endif %}{% else %}opacity-60 pointer-events-none{% endif %}"
           {% if not lv.unlocked %}aria-disabled="true"{% endif %}
         >
           <div class="p-4 aspect-square flex flex-col items-center justify-center text-center">
@@ -77,7 +97,7 @@
             {% endif %}
             <p class="text-sm font-semibold">Level {{ lv.n }}</p>
             <span class="mt-1.5 text-[10px] h-5 inline-flex items-center px-2 rounded-full bg-secondary text-secondary-foreground">
-              {% if lv.completed %}★ 3/3{% elif lv.unlocked %}Start{% else %}Locked{% endif %}
+              {% if lv.completed %}Done{% elif lv.is_current %}Continue{% elif lv.unlocked %}Review{% else %}Locked{% endif %}
             </span>
           </div>
         </a>

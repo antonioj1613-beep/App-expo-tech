@@ -208,6 +208,21 @@ textarea.field { padding: 0.75rem; height: auto; resize: none; line-height: 1.6;
 .nav-link.active i { color: rgb(var(--primary)); }
 .nav-link-logout { color: rgb(var(--muted-foreground)); }
 .nav-link-logout:hover { color: rgb(var(--destructive)); background: rgb(var(--destructive) / 0.08); }
+.nav-link-empty { color: rgb(var(--muted-foreground)); }
+.nav-link-empty:hover { color: rgb(var(--sidebar-foreground)); }
+.nav-pill {
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.2rem 0.4rem;
+  border-radius: 999px;
+  background: rgb(var(--primary) / 0.15);
+  color: rgb(var(--primary));
+}
+.nav-pill-muted {
+  background: rgb(var(--muted) / 0.5);
+  color: rgb(var(--muted-foreground));
+}
 
 /* ---- Levels page: skill tabs ---- */
 .skill-tab {

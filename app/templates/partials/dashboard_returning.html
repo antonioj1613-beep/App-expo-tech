@@ -5,12 +5,14 @@
     <div>
       <span class="inline-flex bg-primary/15 text-primary text-xs font-medium px-2.5 py-1 rounded-full mb-3">Daily goal</span>
       <h2 class="font-display text-2xl md:text-3xl font-bold tracking-tight">
-        Just <span class="text-gradient">2 more lessons</span> to hit your goal today.
+        {{ daily_goal_headline }}
       </h2>
-      <p class="mt-2 text-sm text-muted-foreground">You're on track for a perfect week.</p>
+      <p class="mt-2 text-sm text-muted-foreground">
+        {% if daily_goal_on_track %}You're on track for a perfect week.{% else %}Complete a lesson today to stay on track.{% endif %}
+      </p>
       <div class="mt-4 max-w-md">
-        <div class="flex justify-between text-xs text-muted-foreground mb-1.5"><span>Today's progress</span><span>3 / 5</span></div>
-        <div class="h-2 rounded-full bg-secondary overflow-hidden"><div class="h-full bg-gradient-primary rounded-full" style="width:60%"></div></div>
+        <div class="flex justify-between text-xs text-muted-foreground mb-1.5"><span>Today's progress</span><span>{{ daily_lessons_completed }} / {{ daily_lesson_goal }}</span></div>
+        <div class="h-2 rounded-full bg-secondary overflow-hidden"><div class="h-full bg-gradient-primary rounded-full" style="width:{{ daily_goal_percent }}%"></div></div>
       </div>
     </div>
     <a href="{% url 'levels' %}" class="btn btn-hero btn-lg">Continue learning <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
@@ -76,8 +78,12 @@
         </div>
         <h3 class="font-semibold">{{ s.name }}</h3>
         <div class="mt-3">
+          {% if s.has_lessons %}
           <div class="h-1.5 rounded-full bg-secondary overflow-hidden"><div class="h-full bg-gradient-primary rounded-full" style="width:{{ s.progress }}%"></div></div>
           <p class="text-xs text-muted-foreground mt-1.5">{{ s.progress }}% · {{ s.lessons_label }} lessons</p>
+          {% else %}
+          <p class="text-xs text-muted-foreground mt-1.5">More levels are coming</p>
+          {% endif %}
         </div>
       </div>
     </a>

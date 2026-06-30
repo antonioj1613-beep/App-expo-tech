@@ -396,11 +396,14 @@
       : 0;
 
     try {
-      await apiPost(endUrl, {
+      const data = await apiPost(endUrl, {
         character: selectedCharacter,
         history: JSON.stringify(history),
         duration_seconds: durationSeconds,
       });
+      if (window.applyLearnerStats) {
+        window.applyLearnerStats(data);
+      }
     } catch (err) {
       console.warn("Could not save speaking session:", err.message);
     }

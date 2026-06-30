@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    {% load static %}
+    {% include "partials/head.html" %}
+    <title>{% block title %}Lesson Builder{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'app/staff.css' %}" />
+  </head>
+  <body class="staff-body">
+    <div class="staff-shell">
+      <header class="staff-header">
+        <div class="staff-header-inner">
+          <div>
+            <p class="staff-eyebrow">Superuser only</p>
+            <h1 class="staff-title">{% block header_title %}Lesson Builder{% endblock %}</h1>
+            {% block header_subtitle %}{% endblock %}
+          </div>
+          <nav class="staff-nav">
+            <a href="{% url 'staff_lesson_builder' %}" class="staff-nav-link">All skills</a>
+            <a href="/admin/" class="staff-nav-link">Django admin</a>
+          </nav>
+        </div>
+      </header>
+
+      {% if messages %}
+      <div class="staff-messages">
+        {% for message in messages %}
+        <div class="staff-message staff-message-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <main class="staff-main">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+    <script>if (window.lucide) lucide.createIcons();</script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

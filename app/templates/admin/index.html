@@ -1,0 +1,19 @@
+{% extends "admin/index.html" %}
+
+{% block content %}
+<div class="module" style="margin-bottom: 1rem;">
+  <table>
+    <caption>
+      <a href="{% url 'staff_lesson_builder' %}" class="section">Lesson Builder</a>
+    </caption>
+    <tr class="model-skilllesson">
+      <th scope="row"><a href="{% url 'staff_lesson_builder' %}">Create skill levels</a></th>
+      <td><a href="{% url 'staff_lesson_builder' %}" class="addlink">Open</a></td>
+    </tr>
+  </table>
+  <p style="padding: 0 1rem 1rem; color: #666;">
+    Superuser-only UI to add Listening, Reading, Writing, and Vocabulary levels without code.
+  </p>
+</div>
+{{ block.super }}
+{% endblock %}

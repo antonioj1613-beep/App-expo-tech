@@ -1,51 +1,12 @@
 {% extends "base_app.html" %}
-{% block title %}Profile — Lisa{% endblock %}
+{% block title %}Profile — Learning Skills{% endblock %}
 {% block main %}
-{% include "partials/header.html" with title="Profile" subtitle="Manage your account information" %}
+{% include "partials/header.html" with title="Profile" subtitle=page_subtitle %}
 <main class="flex-1 p-4 md:p-8 space-y-6 max-w-5xl">
-  <div class="glass rounded-2xl relative overflow-hidden">
-    <div class="h-32 bg-gradient-primary relative"><div class="absolute inset-0 bg-gradient-glow opacity-60"></div></div>
-    <div class="p-6 -mt-12 relative">
-      <div class="flex items-end justify-between flex-wrap gap-4">
-        <div class="flex items-end gap-4">
-          <div class="h-24 w-24 rounded-full bg-gradient-primary grid place-items-center text-primary-foreground text-2xl font-bold ring-4 ring-background shadow-elegant">JD</div>
-          <div class="pb-2">
-            <div class="flex items-center gap-2">
-              <h2 class="font-display text-2xl font-bold tracking-tight">Jane Doe</h2>
-              <span class="inline-flex items-center bg-gradient-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full"><i data-lucide="crown" class="h-3 w-3 mr-1"></i> Pro</span>
-            </div>
-            <p class="text-sm text-muted-foreground">@jane_demo · Level 13 Advanced</p>
-          </div>
-        </div>
-        <button class="btn btn-glass"><i data-lucide="pencil" class="h-4 w-4"></i> Edit profile</button>
-      </div>
-      <div class="mt-6 grid sm:grid-cols-3 gap-4 text-sm">
-        <div class="flex items-center gap-2 text-muted-foreground"><i data-lucide="mail" class="h-4 w-4"></i> jane.demo@platform.com</div>
-        <div class="flex items-center gap-2 text-muted-foreground"><i data-lucide="map-pin" class="h-4 w-4"></i> Madrid, Spain</div>
-        <div class="flex items-center gap-2 text-muted-foreground"><i data-lucide="calendar" class="h-4 w-4"></i> Joined Jan 2026</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid md:grid-cols-2 gap-6">
-    <div class="bg-card rounded-2xl border border-border p-6">
-      <h3 class="font-semibold">Account details</h3><p class="text-sm text-muted-foreground mb-4">Personal information</p>
-      <div class="space-y-4">
-        <div class="space-y-1.5"><label class="text-sm font-medium">Full name</label><input value="Jane Doe" class="field h-10" /></div>
-        <div class="space-y-1.5"><label class="text-sm font-medium">Username</label><input value="jane_demo" class="field h-10" /></div>
-        <div class="space-y-1.5"><label class="text-sm font-medium">Email</label><input value="jane.demo@platform.com" class="field h-10" /></div>
-        <button class="btn btn-hero w-full">Save changes</button>
-      </div>
-    </div>
-    <div class="bg-card rounded-2xl border border-border p-6">
-      <h3 class="font-semibold">Learning preferences</h3><p class="text-sm text-muted-foreground mb-4">How you like to learn</p>
-      <div class="space-y-4">
-        <div class="space-y-1.5"><label class="text-sm font-medium">Native language</label><input value="Spanish" class="field h-10" /></div>
-        <div class="space-y-1.5"><label class="text-sm font-medium">Daily goal (minutes)</label><input value="20" type="number" class="field h-10" /></div>
-        <div class="space-y-1.5"><label class="text-sm font-medium">Difficulty</label><input value="Advanced (C1)" class="field h-10" /></div>
-        <button class="btn btn-hero w-full">Update preferences</button>
-      </div>
-    </div>
-  </div>
+  {% if is_new_user %}
+  {% include "partials/profile_new_user.html" %}
+  {% else %}
+  {% include "partials/profile_returning.html" %}
+  {% endif %}
 </main>
 {% endblock %}

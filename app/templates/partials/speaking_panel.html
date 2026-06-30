@@ -3,7 +3,7 @@
     <i data-lucide="mic" class="h-3.5 w-3.5"></i> Voice practice
   </span>
   {% if skill.lessons_label %}
-  <span>Level {{ skill.level }} · {{ skill.lessons_label }} lessons · {{ skill.progress_percent }}%</span>
+  <span id="speakingSkillMeta">Level {{ skill.level }} · {{ skill.lessons_label }} lessons · {{ skill.progress_percent }}%</span>
   {% else %}
   <span>Local voice — works without Google speech services</span>
   {% endif %}

@@ -1,6 +1,8 @@
 from django.urls import path
 
 from . import views
+from . import reading_views
+from . import listening_views
 from . import speaking_views
 
 urlpatterns = [
@@ -11,8 +13,10 @@ urlpatterns = [
     path("dev/database/", views.database_browser, name="database_browser"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("levels/", views.levels, name="levels"),
-    path("listening/", views.listening, name="listening"),
-    path("reading/", views.reading, name="reading"),
+    path("listening/", listening_views.listening, name="listening"),
+    path("listening/api/submit/", listening_views.listening_submit, name="listening_submit"),
+    path("reading/", reading_views.reading, name="reading"),
+    path("reading/api/submit/", reading_views.reading_submit, name="reading_submit"),
     path("writing/", views.writing, name="writing"),
     path("vocabulary/", views.vocabulary, name="vocabulary"),
     path("speaking/", speaking_views.speaking, name="speaking"),

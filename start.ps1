@@ -23,6 +23,10 @@ if ($LASTEXITCODE -ne 0) {
 Write-Step "Applying database migrations..."
 python manage.py migrate --noinput | Out-Null
 
+Write-Step "Seeding lesson catalogs..."
+python manage.py seed_skills | Out-Null
+python manage.py seed_reading | Out-Null
+
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green
 Write-Host "  Learning Skills is starting" -ForegroundColor Green

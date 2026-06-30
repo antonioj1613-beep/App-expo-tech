@@ -5,6 +5,7 @@
     <title>{% block title %}Lisa{% endblock %}</title>
   </head>
   <body>
+    {% load static %}
     <div class="min-h-screen flex w-full bg-background relative">
       <div class="pointer-events-none fixed inset-0 bg-gradient-mesh opacity-60"></div>
       <div class="pointer-events-none fixed inset-0 grid-bg opacity-30"></div>
@@ -14,6 +15,7 @@
       </div>
     </div>
     <script>if (window.lucide) lucide.createIcons();</script>
+    <script src="{% static 'app/stats-ui.js' %}"></script>
     {% block scripts %}{% endblock %}
   </body>
 </html>

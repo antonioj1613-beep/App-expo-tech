@@ -1,21 +1,28 @@
 {% extends "base_app.html" %}
-{% block title %}Writing — Lisa{% endblock %}
+{% block title %}Writing — Learning Skills{% endblock %}
 {% block main %}
 {% include "partials/header.html" with title="Writing Part" subtitle=skill.subtitle %}
 <main class="flex-1 p-4 md:p-8">
+  {% if page_state.coming_soon %}
+  {% include "partials/skill_coming_soon.html" with icon="pen-line" active="writing" %}
+  {% else %}
   <div class="grid lg:grid-cols-[1fr_360px] gap-6 max-w-6xl mx-auto">
     <div class="glass rounded-2xl">
       <div class="p-6 space-y-4">
         <div>
-          <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-2">Prompt</p>
-          <h2 class="font-display text-lg font-semibold leading-snug">Write a 80–120 word email to your team announcing a new project kickoff next Monday.</h2>
+          <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-2">{{ question_label }}</p>
+          <h2 class="font-display text-lg font-semibold leading-snug">{{ writing_prompt }}</h2>
         </div>
         <textarea id="essay" oninput="countWords()" placeholder="Start writing here…" class="field min-h-[320px] text-[15px]"></textarea>
         <div class="flex items-center justify-between">
-          <span class="text-xs text-muted-foreground"><span id="wc">0</span> / 120 words</span>
+          <span class="text-xs text-muted-foreground">
+            <span id="wc">0</span>
+            {% if max_words %} / {{ max_words }}{% endif %} words
+            {% if min_words %}(min {{ min_words }}){% endif %}
+          </span>
           <div class="flex gap-2">
-            <button class="btn btn-glass btn-sm"><i data-lucide="wand-2" class="h-3.5 w-3.5"></i> AI hint</button>
-            <button class="btn btn-hero btn-sm">Submit</button>
+            <button type="button" class="btn btn-glass btn-sm"><i data-lucide="wand-2" class="h-3.5 w-3.5"></i> AI hint</button>
+            <button type="button" class="btn btn-hero btn-sm" disabled>Submit</button>
           </div>
         </div>
       </div>
@@ -27,28 +34,20 @@
           <div class="h-8 w-8 rounded-lg bg-gradient-primary grid place-items-center shadow-glow"><i data-lucide="sparkles" class="h-4 w-4 text-primary-foreground"></i></div>
           <h3 class="font-semibold">AI feedback</h3>
         </div>
-        <div class="space-y-3">
-          {% for m in metrics %}
-          <div>
-            <div class="flex justify-between text-xs mb-1.5"><span>{{ m.label }}</span><span class="font-semibold {{ m.c }}">{{ m.score }}</span></div>
-            <div class="h-1.5 rounded-full bg-secondary overflow-hidden"><div class="h-full rounded-full bg-gradient-primary" style="width:{{ m.score }}%"></div></div>
-          </div>
-          {% endfor %}
-        </div>
-        <div class="mt-5 p-3 rounded-xl bg-primary/10 border border-primary/20">
-          <span class="inline-flex bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full mb-2">Suggestion</span>
-          <p class="text-xs leading-relaxed text-foreground/80">Try using more active verbs in the opening sentence to set a confident tone.</p>
-        </div>
+        <p class="text-sm text-muted-foreground">Submit your writing to receive AI feedback on grammar, clarity, and tone.</p>
       </div>
     </div>
   </div>
+  {% endif %}
 </main>
 {% endblock %}
 {% block scripts %}
+{% if page_state and not page_state.coming_soon %}
 <script>
   function countWords() {
     const v = document.getElementById("essay").value.trim();
     document.getElementById("wc").textContent = v ? v.split(/\s+/).length : 0;
   }
 </script>
+{% endif %}
 {% endblock %}

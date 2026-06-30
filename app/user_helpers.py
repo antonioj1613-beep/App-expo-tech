@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from .models import SpeakingSession, User, UserProfile
+from .models import PracticeSession, SpeakingSession, User, UserProfile
 
 
 def get_logged_in_user(request):
@@ -26,6 +26,7 @@ def is_new_user(user):
     return (
         not user.skill_progress.filter(lessons_completed__gt=0).exists()
         and not SpeakingSession.objects.filter(user=user).exists()
+        and not PracticeSession.objects.filter(user=user).exists()
     )
 
 
@@ -46,28 +47,6 @@ def time_greeting():
 
 
 def build_app_user_context(user):
-    profile = ensure_profile(user)
-    new_user = is_new_user(user)
-    xp = profile.total_xp
-    level = max(1, xp // 400 + 1) if not new_user else 1
+    from .stats_service import build_app_user_stats
 
-    return {
-        "username": user.username,
-        "display_name": user.username.replace("_", " ").title(),
-        "initials": user_initials(user.username),
-        "is_new": new_user,
-        "streak_days": profile.streak_days,
-        "total_xp": xp,
-        "level": level,
-        "level_label": "New learner" if new_user else _level_label(level),
-    }
-
-
-def _level_label(level):
-    if level <= 3:
-        return "Beginner"
-    if level <= 7:
-        return "Intermediate"
-    if level <= 11:
-        return "Advanced"
-    return "Fluent"
+    return build_app_user_stats(user)

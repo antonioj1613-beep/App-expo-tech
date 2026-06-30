@@ -1,0 +1,124 @@
+{% extends "staff/base_staff.html" %}
+{% load static %}
+{% block title %}{% if is_edit %}Edit{% else %}New{% endif %} {{ skill.name }} lesson{% endblock %}
+
+{% block header_title %}{% if is_edit %}Edit lesson{% else %}New {{ skill.name }} lesson{% endif %}{% endblock %}
+{% block header_subtitle %}<p class="staff-subtitle">Level 1–15 · fields change based on skill type</p>{% endblock %}
+
+{% block content %}
+<form method="post" class="staff-form" id="lesson-form" data-skill-slug="{{ skill_slug }}">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div class="staff-form-errors">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <section class="staff-form-section">
+    <h2>Basics</h2>
+    <div class="staff-form-grid">
+      {% for field in form %}
+        {% if field.name in "skill level title slug sort_order is_published" %}
+        <div class="staff-field{% if field.errors %} staff-field-error{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<p class="staff-help">{{ field.help_text }}</p>{% endif %}
+          {{ field.errors }}
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="staff-form-section staff-skill-panel" data-panel="reading listening">
+    <h2>Reading / Listening quiz</h2>
+    <div class="staff-form-grid">
+      <div class="staff-field staff-field-full">
+        <label for="{{ form.passage.id_for_label }}">{{ form.passage.label }}</label>
+        {{ form.passage }}
+        {{ form.passage.errors }}
+      </div>
+      <div class="staff-field staff-field-full">
+        <label for="{{ form.question_prompt.id_for_label }}">{{ form.question_prompt.label }}</label>
+        {{ form.question_prompt }}
+        {{ form.question_prompt.errors }}
+      </div>
+      <div class="staff-field">
+        <label for="{{ form.option_1.id_for_label }}">{{ form.option_1.label }}</label>
+        {{ form.option_1 }}
+      </div>
+      <div class="staff-field">
+        <label for="{{ form.option_2.id_for_label }}">{{ form.option_2.label }}</label>
+        {{ form.option_2 }}
+      </div>
+      <div class="staff-field">
+        <label for="{{ form.option_3.id_for_label }}">{{ form.option_3.label }}</label>
+        {{ form.option_3 }}
+      </div>
+      <div class="staff-field">
+        <label for="{{ form.option_4.id_for_label }}">{{ form.option_4.label }}</label>
+        {{ form.option_4 }}
+      </div>
+      <div class="staff-field">
+        <label for="{{ form.correct_option.id_for_label }}">{{ form.correct_option.label }}</label>
+        {{ form.correct_option }}
+      </div>
+    </div>
+  </section>
+
+  <section class="staff-form-section staff-skill-panel" data-panel="writing">
+    <h2>Writing prompt</h2>
+    <div class="staff-form-grid">
+      <div class="staff-field staff-field-full">
+        <label for="{{ form.writing_prompt.id_for_label }}">{{ form.writing_prompt.label }}</label>
+        {{ form.writing_prompt }}
+        {{ form.writing_prompt.errors }}
+      </div>
+      <div class="staff-field">
+        <label for="{{ form.min_words.id_for_label }}">{{ form.min_words.label }}</label>
+        {{ form.min_words }}
+      </div>
+      <div class="staff-field">
+        <label for="{{ form.max_words.id_for_label }}">{{ form.max_words.label }}</label>
+        {{ form.max_words }}
+      </div>
+    </div>
+  </section>
+
+  <section class="staff-form-section staff-skill-panel" data-panel="vocabulary">
+    <h2>Vocabulary word</h2>
+    <div class="staff-form-grid">
+      <div class="staff-field">
+        <label for="{{ form.vocab_word.id_for_label }}">{{ form.vocab_word.label }}</label>
+        {{ form.vocab_word }}
+        {{ form.vocab_word.errors }}
+      </div>
+      <div class="staff-field">
+        <label for="{{ form.vocab_ipa.id_for_label }}">{{ form.vocab_ipa.label }}</label>
+        {{ form.vocab_ipa }}
+      </div>
+      <div class="staff-field">
+        <label for="{{ form.vocab_cefr.id_for_label }}">{{ form.vocab_cefr.label }}</label>
+        {{ form.vocab_cefr }}
+      </div>
+      <div class="staff-field staff-field-full">
+        <label for="{{ form.vocab_meaning.id_for_label }}">{{ form.vocab_meaning.label }}</label>
+        {{ form.vocab_meaning }}
+        {{ form.vocab_meaning.errors }}
+      </div>
+      <div class="staff-field staff-field-full">
+        <label for="{{ form.vocab_example.id_for_label }}">{{ form.vocab_example.label }}</label>
+        {{ form.vocab_example }}
+      </div>
+    </div>
+  </section>
+
+  <div class="staff-form-actions">
+    <button type="submit" class="staff-btn staff-btn-primary">{% if is_edit %}Save changes{% else %}Create lesson{% endif %}</button>
+    <a href="{{ cancel_url }}" class="staff-btn staff-btn-ghost">Cancel</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'app/staff-lesson-form.js' %}"></script>
+{% endblock %}

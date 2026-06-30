@@ -18,10 +18,17 @@
         <p class="px-3 mb-1 text-[10px] font-semibold tracking-widest uppercase text-muted-foreground/70">{{ group.label }}</p>
         <div class="space-y-0.5">
           {% for item in group.items %}
-            <a href="{% url item.name %}" class="nav-link {% if active == item.name %}active{% endif %}">
+            <a href="{% url item.name %}" class="nav-link {% if active == item.name %}active{% endif %}{% if item.empty %} nav-link-empty{% endif %}">
               <span class="nav-indicator"></span>
               <i data-lucide="{{ item.icon }}" class="h-[18px] w-[18px]"></i>
-              <span>{{ item.title }}</span>
+              <span class="flex-1 truncate">{{ item.title }}</span>
+              {% if item.empty %}
+                <span class="nav-pill nav-pill-muted">Soon</span>
+              {% elif item.current_level %}
+                <span class="nav-pill">L{{ item.current_level }}</span>
+              {% elif item.catalog_complete %}
+                <span class="nav-pill nav-pill-muted">Done</span>
+              {% endif %}
             </a>
           {% endfor %}
         </div>
@@ -44,20 +51,21 @@
       </div>
     </div>
     {% else %}
-    <div class="glass rounded-2xl p-3 space-y-2">
+    <div id="sidebarReturningWidget" class="glass rounded-2xl p-3 space-y-2">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-1.5">
           <i data-lucide="flame" class="h-4 w-4 text-warning"></i>
-          <span class="text-sm font-semibold">{{ app_user.streak_days }} day streak</span>
+          <span id="sidebarStreakDays" class="text-sm font-semibold">{{ app_user.streak_days }} day streak</span>
         </div>
         <span class="inline-flex items-center h-5 px-1.5 text-[10px] rounded-full bg-primary/15 text-primary">
           <i data-lucide="trophy" class="h-2.5 w-2.5 mr-0.5"></i>Pro
         </span>
       </div>
       <div class="h-1.5 rounded-full bg-secondary overflow-hidden">
-        <div class="h-full bg-gradient-primary rounded-full" style="width:{% if app_user.total_xp %}75{% else %}0{% endif %}%"></div>
+        <div id="sidebarXpBar" class="h-full bg-gradient-primary rounded-full transition-all duration-300" style="width:{{ app_user.xp_progress_percent }}%"></div>
       </div>
-      <p class="text-[11px] text-muted-foreground">{{ app_user.total_xp|default:"0" }} XP earned</p>
+      <p id="sidebarXpTotal" class="text-[11px] text-muted-foreground">{{ app_user.total_xp_display }} XP earned</p>
+      <p id="sidebarXpDetail" class="text-[10px] text-muted-foreground">{{ app_user.xp_into_level }} / {{ app_user.xp_for_next_level }} XP to level {{ app_user.level|add:"1" }}</p>
     </div>
     {% endif %}
     {% endif %}

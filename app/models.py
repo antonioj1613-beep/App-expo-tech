@@ -151,3 +151,181 @@ class SpeakingSession(models.Model):
 
     def __str__(self):
         return f"{self.user.username} · {self.tutor} · {self.created_at:%Y-%m-%d %H:%M}"
+
+
+class PracticeSession(models.Model):
+    """
+    Unified practice record for dashboard/statistics aggregation.
+
+    Speaking keeps SpeakingSession for transcripts; every completed practice
+  activity also writes a PracticeSession row.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="practice_sessions")
+    skill = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name="practice_sessions")
+    xp_earned = models.PositiveIntegerField(default=0)
+    accuracy_score = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+    duration_seconds = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "created_at"]),
+            models.Index(fields=["user", "skill", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} · {self.skill.slug} · {self.xp_earned} XP"
+
+
+class VocabularyWord(models.Model):
+    """Reference vocabulary item — content seeded via management command."""
+
+    word = models.CharField(max_length=80)
+    slug = models.SlugField(max_length=80, unique=True)
+    ipa = models.CharField(max_length=80, blank=True)
+    meaning = models.TextField()
+    example = models.TextField(blank=True)
+    level = models.CharField(max_length=4, default="B2")
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "word"]
+
+    def __str__(self):
+        return self.word
+
+
+class UserVocabularyMastery(models.Model):
+    """Per-user mastery for a vocabulary word (words_learned when mastered)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="vocabulary_mastery")
+    word = models.ForeignKey(VocabularyWord, on_delete=models.CASCADE, related_name="user_mastery")
+    correct_count = models.PositiveSmallIntegerField(default=0)
+    mastered_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [["user", "word"]]
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        status = "mastered" if self.mastered_at else f"{self.correct_count} correct"
+        return f"{self.user.username} · {self.word.word} ({status})"
+
+    @property
+    def is_mastered(self) -> bool:
+        return self.mastered_at is not None
+
+
+class ReadingLesson(models.Model):
+    """Deprecated — use SkillLesson. Kept until migration completes."""
+
+    slug = models.SlugField(max_length=80, unique=True)
+    title = models.CharField(max_length=120)
+    passage = models.TextField()
+    question_prompt = models.TextField()
+    options = models.JSONField(help_text="List of answer option strings.")
+    correct_index = models.PositiveSmallIntegerField()
+    level = models.PositiveSmallIntegerField(default=1)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return self.title
+
+
+STAFF_SKILL_SLUGS = ("listening", "reading", "writing", "vocabulary")
+
+
+class SkillLesson(models.Model):
+    """
+    Lesson content for Listening, Reading, Writing, and Vocabulary.
+    Created via the staff Lesson Builder (/staff/lesson-builder/) or Django admin.
+    """
+
+    skill = models.ForeignKey(
+        Skill,
+        on_delete=models.CASCADE,
+        related_name="lessons",
+        limit_choices_to={"slug__in": STAFF_SKILL_SLUGS},
+    )
+    level = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Level number (1–15) within this skill path.",
+    )
+    title = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=80)
+    sort_order = models.PositiveIntegerField(default=0)
+    is_published = models.BooleanField(default=True)
+
+    passage = models.TextField(blank=True, help_text="Reading: passage text.")
+    question_prompt = models.TextField(blank=True, help_text="Reading/Listening: question text.")
+    options = models.JSONField(default=list, blank=True, help_text="Quiz answer options (list of strings).")
+    correct_index = models.PositiveSmallIntegerField(default=0)
+
+    writing_prompt = models.TextField(blank=True, help_text="Writing: learner prompt.")
+    min_words = models.PositiveSmallIntegerField(null=True, blank=True)
+    max_words = models.PositiveSmallIntegerField(null=True, blank=True)
+
+    vocab_word = models.CharField(max_length=80, blank=True)
+    vocab_ipa = models.CharField(max_length=80, blank=True)
+    vocab_meaning = models.TextField(blank=True)
+    vocab_example = models.TextField(blank=True)
+    vocab_cefr = models.CharField(max_length=4, blank=True, default="B2")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["skill", "sort_order", "id"]
+        unique_together = [["skill", "slug"]]
+
+    def __str__(self):
+        return f"{self.skill.name} · L{self.level} · {self.title}"
+
+    @property
+    def skill_slug(self) -> str:
+        return self.skill.slug
+
+
+class UserSkillLessonCompletion(models.Model):
+    """Tracks first completion of a skill lesson (prevents duplicate XP)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="lesson_completions")
+    lesson = models.ForeignKey(SkillLesson, on_delete=models.CASCADE, related_name="completions")
+    was_correct = models.BooleanField(null=True, blank=True)
+    xp_earned = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [["user", "lesson"]]
+        ordering = ["-completed_at"]
+
+    def __str__(self):
+        return f"{self.user.username} · {self.lesson}"
+
+
+class UserReadingLessonCompletion(models.Model):
+    """Tracks first completion of a reading lesson (prevents duplicate XP)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reading_completions")
+    lesson = models.ForeignKey(ReadingLesson, on_delete=models.CASCADE, related_name="completions")
+    was_correct = models.BooleanField()
+    xp_earned = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = [["user", "lesson"]]
+        ordering = ["-completed_at"]
+
+    def __str__(self):
+        return f"{self.user.username} · {self.lesson.slug}"

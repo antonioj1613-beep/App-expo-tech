@@ -1,0 +1,17 @@
+<div class="max-w-2xl mx-auto glass rounded-2xl p-8 text-center">
+  <div class="h-14 w-14 rounded-2xl bg-primary/15 text-primary grid place-items-center mx-auto mb-4">
+    <i data-lucide="{{ icon|default:'layers' }}" class="h-7 w-7"></i>
+  </div>
+  <h2 class="font-display text-xl font-bold">{{ message|default:"More levels are coming" }}</h2>
+  <p class="text-sm text-muted-foreground mt-2">
+    {% if page_state.catalog_complete and page_state.has_lessons %}
+      You've completed all available lessons. New levels will appear here when they're ready.
+    {% else %}
+      New lessons will appear here when they're ready. Check back soon!
+    {% endif %}
+  </p>
+  <div class="mt-5 flex flex-wrap justify-center gap-2">
+    <a href="{% url 'levels' %}?skill={{ active }}" class="btn btn-hero btn-sm">Browse levels</a>
+    <a href="{% url 'dashboard' %}" class="btn btn-glass btn-sm">Dashboard</a>
+  </div>
+</div>

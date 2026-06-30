@@ -11,8 +11,8 @@ from django.views.decorators.http import require_POST
 from .decorators import login_required
 from .speaking_stt import model_ready, transcribe_wav, vosk_installed
 from .speaking_tutor import ollama_available, starter_question, tutor_reply
-from .stats_service import build_skill_context, record_speaking_session
-from .user_helpers import ensure_profile, get_logged_in_user
+from .stats_service import build_post_session_payload, build_skill_context, record_speaking_session
+from .user_helpers import get_logged_in_user
 
 
 def speaking_page_context(request) -> dict:
@@ -144,14 +144,4 @@ def speaking_end(request):
         transcript=cleaned,
         duration_seconds=duration_seconds,
     )
-    profile = ensure_profile(user)
-    profile.refresh_from_db()
-    return JsonResponse(
-        {
-            "ok": True,
-            "session_id": session.id,
-            "xp_earned": session.xp_earned,
-            "accuracy_score": float(session.accuracy_score) if session.accuracy_score is not None else None,
-            "total_xp": profile.total_xp,
-        }
-    )
+    return JsonResponse(build_post_session_payload(user, session))

@@ -1,63 +1,64 @@
 {% extends "base_app.html" %}
-{% block title %}Listening — Lisa{% endblock %}
+{% load static %}
+{% block title %}Listening — Learning Skills{% endblock %}
 {% block main %}
 {% include "partials/header.html" with title="Listening Part" subtitle=skill.subtitle %}
 <main class="flex-1 p-4 md:p-8">
+  {% if page_state.coming_soon %}
+  {% include "partials/skill_coming_soon.html" with icon="headphones" active="listening" %}
+  {% else %}
   <div class="grid lg:grid-cols-[1fr_360px] gap-6 max-w-6xl mx-auto">
     <div class="glass rounded-2xl overflow-hidden">
       <div class="relative aspect-video bg-gradient-to-br from-primary/20 via-background to-accent/10 grid place-items-center">
         <div class="absolute inset-0 bg-gradient-glow opacity-40"></div>
-        <button id="playBtn" onclick="togglePlay()" class="relative h-20 w-20 rounded-full bg-gradient-primary grid place-items-center shadow-glow hover:scale-105 transition-transform">
+        <button id="playBtn" type="button" class="relative h-20 w-20 rounded-full bg-gradient-primary grid place-items-center shadow-glow hover:scale-105 transition-transform">
           <i id="playIcon" data-lucide="play" class="h-8 w-8 text-primary-foreground ml-1"></i>
         </button>
       </div>
       <div class="p-5">
-        <div class="flex items-center gap-3">
-          <div class="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden"><div class="h-full w-1/3 bg-gradient-primary rounded-full"></div></div>
-          <span class="text-xs text-muted-foreground tabular-nums">0:42 / 2:18</span>
-        </div>
-        <div class="mt-4 grid grid-cols-3 gap-2"><button class="btn btn-glass btn-sm">0.75×</button><button class="btn btn-glass btn-sm">1×</button><button class="btn btn-glass btn-sm">1.25×</button></div>
+        <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-2">{{ lesson_title }}</p>
+        {% if passage %}
+        <p class="text-sm text-muted-foreground leading-relaxed">{{ passage }}</p>
+        {% else %}
+        <p class="text-sm text-muted-foreground">Listen to the audio and answer the question.</p>
+        {% endif %}
       </div>
     </div>
 
     <div class="glass rounded-2xl">
       <div class="p-6">
-        <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-2">Question 3 / 5</p>
-        <h2 class="font-display text-lg font-semibold leading-snug">What does the video mention as important?</h2>
-        <div class="mt-5 space-y-2.5">
+        <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-2">{{ question_label }}</p>
+        <h2 class="font-display text-lg font-semibold leading-snug">{{ question_prompt }}</h2>
+        <div id="listeningOptions" class="mt-5 space-y-2.5">
           {% for opt in options %}
-          <button onclick="selectOpt(this)" data-i="{{ forloop.counter0 }}" class="opt w-full text-left p-3.5 rounded-xl border border-border bg-secondary/40 hover:border-primary/40 hover:bg-secondary/70 transition-all flex items-center gap-3">
+          <button type="button" data-i="{{ forloop.counter0 }}" class="listening-opt w-full text-left p-3.5 rounded-xl border border-border bg-secondary/40 hover:border-primary/40 hover:bg-secondary/70 transition-all flex items-center gap-3">
             <div class="letter h-7 w-7 rounded-lg grid place-items-center text-xs font-bold shrink-0 bg-background border border-border">{% if forloop.counter0 == 0 %}A{% elif forloop.counter0 == 1 %}B{% elif forloop.counter0 == 2 %}C{% else %}D{% endif %}</div>
             <span class="text-sm font-medium">{{ opt }}</span>
           </button>
           {% endfor %}
         </div>
-        <button id="submitBtn" class="btn btn-hero btn-lg w-full mt-6" disabled>Submit answer <i data-lucide="chevron-right" class="h-4 w-4"></i></button>
+        <p id="listeningFeedback" class="hidden mt-4 text-sm rounded-xl p-3 border"></p>
+        <button id="listeningSubmitBtn" type="button" class="btn btn-hero btn-lg w-full mt-6" disabled>
+          Submit answer <i data-lucide="chevron-right" class="h-4 w-4"></i>
+        </button>
+        <a id="listeningNextBtn" href="{% url 'listening' %}" class="btn btn-glass btn-lg w-full mt-3 hidden">Next lesson <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
       </div>
     </div>
   </div>
+
+  <div
+    id="listening-config"
+    class="hidden"
+    data-lesson-id="{{ lesson_id }}"
+    data-submit-url="{% url 'listening_submit' %}"
+    data-csrf-token="{{ csrf_token }}"
+    data-already-completed="{% if already_completed %}1{% else %}0{% endif %}"
+  ></div>
+  {% endif %}
 </main>
 {% endblock %}
 {% block scripts %}
-<script>
-  let playing = false;
-  function togglePlay() {
-    playing = !playing;
-    document.getElementById("playIcon").setAttribute("data-lucide", playing ? "pause" : "play");
-    lucide.createIcons();
-  }
-  function selectOpt(el) {
-    document.querySelectorAll(".opt").forEach((o) => {
-      o.classList.remove("border-primary", "bg-primary/10", "shadow-glow");
-      o.classList.add("border-border", "bg-secondary/40");
-      o.querySelector(".letter").classList.remove("bg-gradient-primary", "text-primary-foreground");
-      o.querySelector(".letter").classList.add("bg-background", "border", "border-border");
-    });
-    el.classList.add("border-primary", "bg-primary/10", "shadow-glow");
-    el.classList.remove("border-border", "bg-secondary/40");
-    el.querySelector(".letter").classList.add("bg-gradient-primary", "text-primary-foreground");
-    el.querySelector(".letter").classList.remove("bg-background", "border", "border-border");
-    document.getElementById("submitBtn").disabled = false;
-  }
-</script>
+{% if page_state and not page_state.coming_soon %}
+<script src="{% static 'app/listening.js' %}"></script>
+{% endif %}
 {% endblock %}
