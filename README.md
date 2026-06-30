@@ -1,11 +1,11 @@
-# Learning Skills — Django
+# Learning Skills
 
 Aplicación web para practicar inglés: escucha, lectura, escritura, vocabulario y conversación por voz con tutores de IA (Miles y Maya).
 
 ## Inicio rápido (un solo comando)
 
 ```powershell
-cd learning-skills-restored
+cd App-expo-tech
 .\start.ps1
 ```
 
@@ -69,7 +69,7 @@ Usa **Chrome o Edge** en la página de Speaking (grabación y transcripción de 
 ## Estructura del proyecto
 
 ```
-learning-skills-restored/
+App-expo-tech/
 ├── start.ps1                 ← ejecutar esto
 ├── dev.ps1                   ← alias de start.ps1
 ├── requirements.txt

@@ -5,7 +5,7 @@ $ErrorActionPreference = "Stop"
 
 $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $saveScript = Join-Path $projectRoot "scripts\save-to-github.ps1"
-$taskName = "LearningSkills-GitHub-17h"
+$taskName = "App-expo-tech-GitHub-17h"
 
 if (-not (Test-Path $saveScript)) {
     Write-Host "ERROR: No se encuentra $saveScript" -ForegroundColor Red

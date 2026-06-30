@@ -90,7 +90,7 @@ Structured console logging configured in `base.py` with `DJANGO_LOG_LEVEL` overr
 
 ```bash
 # 1. Clone / copy project
-cd learning-skills-restored
+cd App-expo-tech
 
 # 2. Virtual environment
 python -m venv .venv
