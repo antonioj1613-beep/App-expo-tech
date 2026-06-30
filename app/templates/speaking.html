@@ -1,0 +1,12 @@
+{% extends "base_app.html" %}
+{% load static %}
+{% block title %}Speaking — Learning Skills{% endblock %}
+{% block main %}
+{% include "partials/header.html" with title="Speaking Practice" subtitle=page_subtitle %}
+<main class="flex-1 p-4 md:p-8 space-y-6 max-w-6xl mx-auto">
+  {% include "partials/speaking_panel.html" %}
+</main>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'app/speaking.js' %}"></script>
+{% endblock %}

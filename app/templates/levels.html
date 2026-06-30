@@ -1,0 +1,131 @@
+{% extends "base_app.html" %}
+{% block title %}Levels — Learning Skills{% endblock %}
+{% block main %}
+{% include "partials/header.html" with title="Levels" subtitle="Select a skill and level to start your lesson" %}
+<main class="flex-1 p-4 md:p-8 space-y-6">
+  <div class="inline-flex flex-wrap bg-card/60 backdrop-blur-xl border border-border/60 p-1 rounded-xl gap-1" role="tablist" aria-label="Skills">
+    {% for skill in skills %}
+    <button
+      type="button"
+      role="tab"
+      class="skill-tab {% if forloop.first %}is-active{% endif %}"
+      data-skill="{{ skill.id }}"
+      aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+      aria-controls="panel-{{ skill.id }}"
+    >
+      <i data-lucide="{{ skill.icon }}" class="h-4 w-4 shrink-0"></i>
+      <span>{{ skill.name }}</span>
+    </button>
+    {% endfor %}
+  </div>
+
+  {% for skill in skills %}
+  <div
+    id="panel-{{ skill.id }}"
+    class="skill-panel{% if not forloop.first %} hidden{% endif %}"
+    role="tabpanel"
+    data-skill="{{ skill.id }}"
+  >
+    {% if skill.id == "speaking" %}
+    <div class="max-w-6xl mx-auto">
+      {% include "partials/speaking_panel.html" %}
+    </div>
+    {% else %}
+    <div class="grid lg:grid-cols-[300px_1fr] gap-6">
+      <div class="glass rounded-2xl relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-glow opacity-60"></div>
+        <div class="relative p-6 flex flex-col items-center text-center min-h-[280px] justify-center">
+          <div class="h-20 w-20 rounded-3xl bg-gradient-primary grid place-items-center shadow-glow mb-5 {% if forloop.first %}animate-float{% endif %}">
+            <i data-lucide="{{ skill.icon }}" class="h-10 w-10 text-primary-foreground"></i>
+          </div>
+          <h3 class="font-display text-xl font-bold">{{ skill.name }}</h3>
+          <p class="text-sm text-muted-foreground mt-1 max-w-[220px]">{{ skill.tagline }}</p>
+          <p class="text-xs text-muted-foreground mt-2">15 levels · {{ skill.lessons }} lessons</p>
+          <a href="{% url skill.url %}" class="btn btn-hero mt-5">
+            <i data-lucide="play" class="h-4 w-4"></i> Continue
+          </a>
+          <div class="mt-5 flex gap-1.5 skill-dots" aria-hidden="true">
+            {% for dot in skills %}
+            <span class="skill-dot h-1.5 rounded-full bg-muted {% if dot.id == skill.id %}w-6 bg-primary{% else %}w-1.5{% endif %}" data-skill="{{ dot.id }}"></span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {% for lv in levels %}
+        <a
+          href="{% if lv.unlocked %}{% url skill.url %}{% else %}#{% endif %}"
+          class="bg-card rounded-2xl border border-border group transition-all {% if lv.unlocked %}hover:shadow-glow hover:-translate-y-1 hover:border-primary/40 cursor-pointer{% else %}opacity-60 pointer-events-none{% endif %}"
+          {% if not lv.unlocked %}aria-disabled="true"{% endif %}
+        >
+          <div class="p-4 aspect-square flex flex-col items-center justify-center text-center">
+            {% if lv.completed %}
+              <div class="flex gap-0.5 mb-2">
+                <i data-lucide="star" class="h-4 w-4 text-warning" style="fill:currentColor"></i>
+                <i data-lucide="star" class="h-4 w-4 text-warning" style="fill:currentColor"></i>
+                <i data-lucide="star" class="h-4 w-4 text-warning" style="fill:currentColor"></i>
+              </div>
+            {% elif lv.unlocked %}
+              <div class="h-9 w-9 rounded-xl bg-gradient-primary grid place-items-center shadow-glow mb-2">
+                <i data-lucide="{{ skill.icon }}" class="h-4 w-4 text-primary-foreground"></i>
+              </div>
+            {% else %}
+              <div class="h-9 w-9 rounded-xl bg-muted grid place-items-center mb-2">
+                <i data-lucide="lock" class="h-4 w-4 text-muted-foreground"></i>
+              </div>
+            {% endif %}
+            <p class="text-sm font-semibold">Level {{ lv.n }}</p>
+            <span class="mt-1.5 text-[10px] h-5 inline-flex items-center px-2 rounded-full bg-secondary text-secondary-foreground">
+              {% if lv.completed %}★ 3/3{% elif lv.unlocked %}Start{% else %}Locked{% endif %}
+            </span>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</main>
+{% endblock %}
+{% block scripts %}
+{% load static %}
+<script src="{% static 'app/speaking.js' %}"></script>
+<script>
+  (function () {
+    var tabs = document.querySelectorAll(".skill-tab");
+    var panels = document.querySelectorAll(".skill-panel");
+    var activeSkill = tabs.length ? tabs[0].dataset.skill : null;
+
+    function activate(skillId) {
+      if (activeSkill === "speaking" && skillId !== "speaking" && window.endSpeakingCall) {
+        window.endSpeakingCall();
+      }
+
+      activeSkill = skillId;
+
+      tabs.forEach(function (tab) {
+        var active = tab.dataset.skill === skillId;
+        tab.classList.toggle("is-active", active);
+        tab.setAttribute("aria-selected", active ? "true" : "false");
+      });
+
+      panels.forEach(function (panel) {
+        panel.classList.toggle("hidden", panel.dataset.skill !== skillId);
+      });
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        activate(tab.dataset.skill);
+      });
+    });
+
+    var initial = new URLSearchParams(window.location.search).get("skill");
+    if (initial) activate(initial);
+  })();
+</script>
+{% endblock %}

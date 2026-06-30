@@ -1,0 +1,59 @@
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  {% for c in cards %}
+  <div class="bg-card rounded-2xl border border-border p-5">
+    <p class="text-xs text-muted-foreground font-medium">{{ c.l }}</p>
+    <p class="text-3xl font-bold tracking-tight mt-1 text-muted-foreground/80">{{ c.v }}</p>
+    <span class="inline-flex mt-2 text-[10px] px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">{{ c.d }}</span>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="glass rounded-2xl p-6 md:p-8">
+  <div class="max-w-lg mx-auto text-center">
+    <div class="h-16 w-16 rounded-2xl bg-primary/15 text-primary grid place-items-center mx-auto mb-4">
+      <i data-lucide="bar-chart-3" class="h-8 w-8"></i>
+    </div>
+    <h2 class="font-display text-xl font-bold">No statistics yet</h2>
+    <p class="text-sm text-muted-foreground mt-2">
+      Charts for XP, study time, accuracy, and skill breakdown will appear after you complete a few lessons.
+    </p>
+    <a href="{% url 'levels' %}" class="btn btn-hero btn-sm mt-5">
+      Browse lessons <i data-lucide="arrow-right" class="h-4 w-4"></i>
+    </a>
+  </div>
+</div>
+
+<div class="grid lg:grid-cols-2 gap-6">
+  <div class="insights-chart-empty bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold">XP over time</h3>
+    <p class="text-sm text-muted-foreground mb-4">Monthly XP earned</p>
+    <div class="insights-chart-empty__body">
+      <i data-lucide="trending-up" class="h-8 w-8 text-muted-foreground/50"></i>
+      <p class="text-sm text-muted-foreground mt-3">Waiting for your first data points</p>
+    </div>
+  </div>
+  <div class="insights-chart-empty bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold">Time distribution</h3>
+    <p class="text-sm text-muted-foreground mb-4">This month by skill</p>
+    <div class="insights-chart-empty__body">
+      <i data-lucide="pie-chart" class="h-8 w-8 text-muted-foreground/50"></i>
+      <p class="text-sm text-muted-foreground mt-3">No study sessions recorded</p>
+    </div>
+  </div>
+  <div class="insights-chart-empty bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold">Skill levels</h3>
+    <p class="text-sm text-muted-foreground mb-4">Current progress per skill</p>
+    <div class="insights-chart-empty__body">
+      <i data-lucide="layers" class="h-8 w-8 text-muted-foreground/50"></i>
+      <p class="text-sm text-muted-foreground mt-3">All skills at level 1</p>
+    </div>
+  </div>
+  <div class="insights-chart-empty bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold">Accuracy trend</h3>
+    <p class="text-sm text-muted-foreground mb-4">Last 7 weeks</p>
+    <div class="insights-chart-empty__body">
+      <i data-lucide="target" class="h-8 w-8 text-muted-foreground/50"></i>
+      <p class="text-sm text-muted-foreground mt-3">Accuracy tracking starts with lesson 1</p>
+    </div>
+  </div>
+</div>

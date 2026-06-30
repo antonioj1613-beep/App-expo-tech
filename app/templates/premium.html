@@ -1,0 +1,65 @@
+{% extends "base_app.html" %}
+{% block title %}Premium — Lisa{% endblock %}
+{% block main %}
+{% include "partials/header.html" with title="Premium" subtitle="Unlock your full learning potential" %}
+<main class="flex-1 p-4 md:p-8">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-10">
+      <span class="inline-flex items-center bg-primary/15 text-primary text-xs px-2.5 py-1 rounded-full mb-3"><i data-lucide="sparkles" class="h-3 w-3 mr-1"></i> Save 20% annually</span>
+      <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Choose your <span class="text-gradient">plan</span></h1>
+      <p class="mt-3 text-muted-foreground">Start free. Upgrade anytime. Cancel whenever.</p>
+      <div class="mt-6 inline-flex p-1 rounded-full glass">
+        <button id="monthlyBtn" onclick="setBilling(false)" class="px-5 py-1.5 text-sm rounded-full transition text-muted-foreground">Monthly</button>
+        <button id="annualBtn" onclick="setBilling(true)" class="px-5 py-1.5 text-sm rounded-full transition bg-gradient-primary text-primary-foreground shadow-glow">Annual</button>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-5">
+      {% for p in plans %}
+      <div class="relative bg-card rounded-2xl border border-border p-6 space-y-5 {% if p.popular %}border-primary/60 shadow-glow scale-[1.02]{% endif %}">
+        {% if p.popular %}
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2"><span class="inline-flex items-center bg-gradient-primary text-primary-foreground text-xs px-2.5 py-1 rounded-full"><i data-lucide="crown" class="h-3 w-3 mr-1"></i> Most popular</span></div>
+        {% endif %}
+        <div><h3 class="font-display text-xl font-bold">{{ p.name }}</h3><p class="text-sm text-muted-foreground mt-1">{{ p.desc }}</p></div>
+        <div>
+          <div class="flex items-baseline gap-1">
+            <span class="text-5xl font-bold tracking-tight price" data-monthly="{{ p.price }}" data-annual="{{ p.annual_price }}">${{ p.annual_price }}</span>
+            <span class="text-muted-foreground text-sm">/ month</span>
+          </div>
+          {% if p.price > 0 %}<p class="text-xs text-success mt-1 saving">Billed yearly · save ${{ p.savings }}</p>{% endif %}
+        </div>
+        <button class="btn {% if p.popular %}btn-hero{% else %}btn-glass{% endif %} btn-lg w-full">{% if p.price == 0 %}Current plan{% else %}Get {{ p.name }}{% endif %}</button>
+        <ul class="space-y-2.5">
+          {% for f in p.features %}
+          <li class="flex items-start gap-2 text-sm">
+            <div class="h-5 w-5 rounded-full grid place-items-center shrink-0 mt-0.5 {% if p.popular %}bg-gradient-primary{% else %}bg-primary/15{% endif %}"><i data-lucide="check" class="h-3 w-3 {% if p.popular %}text-primary-foreground{% else %}text-primary{% endif %}"></i></div>
+            {{ f }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="glass rounded-2xl mt-10 relative overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-glow opacity-40"></div>
+      <div class="relative p-8 text-center">
+        <div class="h-12 w-12 rounded-2xl bg-gradient-primary grid place-items-center shadow-glow mx-auto mb-4"><i data-lucide="zap" class="h-6 w-6 text-primary-foreground"></i></div>
+        <h3 class="font-display text-2xl font-bold tracking-tight">7-day free trial on Pro</h3>
+        <p class="text-sm text-muted-foreground mt-2 max-w-md mx-auto">No credit card required. Experience everything Lisa Pro has to offer.</p>
+        <button class="btn btn-hero btn-lg mt-6">Start free trial</button>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+  function setBilling(annual) {
+    document.getElementById("annualBtn").className = "px-5 py-1.5 text-sm rounded-full transition " + (annual ? "bg-gradient-primary text-primary-foreground shadow-glow" : "text-muted-foreground");
+    document.getElementById("monthlyBtn").className = "px-5 py-1.5 text-sm rounded-full transition " + (!annual ? "bg-gradient-primary text-primary-foreground shadow-glow" : "text-muted-foreground");
+    document.querySelectorAll(".price").forEach((p) => { p.textContent = "$" + (annual ? p.dataset.annual : p.dataset.monthly); });
+    document.querySelectorAll(".saving").forEach((s) => { s.style.display = annual ? "block" : "none"; });
+  }
+</script>
+{% endblock %}

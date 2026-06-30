@@ -1,0 +1,10 @@
+{% load static %}
+{# size: sm (36px) | md (48px) | lg (72px) #}
+<img
+  src="{% static 'app/logo.svg' %}"
+  alt="Learning Skills"
+  class="inline-block shrink-0 shadow-glow
+  {% if size == 'lg' %}h-[4.5rem] w-[4.5rem] rounded-2xl
+  {% elif size == 'md' %}h-12 w-12 rounded-2xl
+  {% else %}h-9 w-9 rounded-xl{% endif %}"
+/>

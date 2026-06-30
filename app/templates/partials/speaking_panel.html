@@ -1,0 +1,133 @@
+<div class="inline-flex items-center gap-2 text-sm text-muted-foreground mb-6">
+  <span class="inline-flex items-center gap-1.5 bg-primary/15 text-primary text-xs font-medium px-2.5 py-1 rounded-full">
+    <i data-lucide="mic" class="h-3.5 w-3.5"></i> Voice practice
+  </span>
+  {% if skill.lessons_label %}
+  <span>Level {{ skill.level }} · {{ skill.lessons_label }} lessons · {{ skill.progress_percent }}%</span>
+  {% else %}
+  <span>Local voice — works without Google speech services</span>
+  {% endif %}
+</div>
+
+<div id="speakingVoicePanel" class="grid lg:grid-cols-[1fr_320px] gap-6">
+  <div class="space-y-6">
+    <div class="glass rounded-2xl overflow-hidden relative">
+      <div class="absolute inset-0 bg-gradient-glow opacity-40 pointer-events-none"></div>
+      <div class="relative p-6 md:p-8">
+        <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-2">Your tutor</p>
+        <h2 id="tutorName" class="font-display text-xl md:text-2xl font-bold leading-snug">
+          Choose a tutor and tap the microphone to begin.
+        </h2>
+        <p id="tutorHint" class="text-sm text-muted-foreground mt-3 leading-relaxed">
+          Speak in English. Your browser listens, and the tutor replies out loud.
+        </p>
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-6 md:p-8">
+      <div class="flex flex-col items-center text-center gap-5">
+        <div class="flex gap-3" role="group" aria-label="Choose tutor">
+          <button type="button" class="speaking-character-btn is-selected" data-character="Miles">
+            <i data-lucide="user" class="h-4 w-4"></i>
+            Miles
+          </button>
+          <button type="button" class="speaking-character-btn" data-character="Maya">
+            <i data-lucide="user-round" class="h-4 w-4"></i>
+            Maya
+          </button>
+        </div>
+
+        <span id="statusBadge" class="inline-flex items-center gap-1.5 bg-secondary text-secondary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+          <span id="statusDot" class="speaking-status-dot"></span>
+          <span id="statusBadgeText">Ready</span>
+        </span>
+
+        <button id="callBtn" type="button" class="speaking-record-btn" aria-label="Start or end practice">
+          <span class="speaking-record-btn__ring"></span>
+          <i id="callIcon" data-lucide="mic" class="h-8 w-8"></i>
+        </button>
+
+        <div>
+          <p id="status" class="text-sm font-semibold">Ready when you are</p>
+          <p id="stepHint" class="text-sm text-muted-foreground mt-1 max-w-sm mx-auto leading-relaxed">
+            Tap the microphone to start. Speak when the tutor finishes talking.
+          </p>
+          <p id="liveTranscript" class="text-sm text-primary mt-2 min-h-[1.25rem] hidden"></p>
+          <button id="doneSpeakingBtn" type="button" class="btn btn-glass btn-sm mt-3 hidden">
+            Done speaking
+          </button>
+          <div id="textFallback" class="mt-4 w-full max-w-sm hidden">
+            <label for="typedAnswer" class="text-xs font-medium text-muted-foreground">Or type your answer</label>
+            <div class="flex gap-2 mt-1.5">
+              <input id="typedAnswer" type="text" class="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm" placeholder="Type here if the mic fails…" />
+              <button id="sendTypedBtn" type="button" class="btn btn-hero btn-sm">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-card rounded-2xl border border-border p-6">
+      <h3 class="font-semibold mb-4">Conversation</h3>
+      <div id="conversationLog" class="speaking-log space-y-3 max-h-64 overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <div class="space-y-6">
+    <div class="bg-card rounded-2xl border border-border p-6">
+      <h3 class="font-semibold mb-4">Tips</h3>
+      <ul class="space-y-3 text-sm text-muted-foreground">
+        <li class="flex gap-2">
+          <i data-lucide="chrome" class="h-4 w-4 text-primary shrink-0 mt-0.5"></i>
+          <span>Chrome or Edge recommended. Speech is processed locally on your PC.</span>
+        </li>
+        <li class="flex gap-2">
+          <i data-lucide="headphones" class="h-4 w-4 text-primary shrink-0 mt-0.5"></i>
+          <span>Headphones help the mic hear you clearly.</span>
+        </li>
+        <li class="flex gap-2">
+          <i data-lucide="volume-2" class="h-4 w-4 text-primary shrink-0 mt-0.5"></i>
+          <span>Allow microphone access when your browser asks.</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="bg-card rounded-2xl border border-border p-6">
+      <h3 class="font-semibold mb-2">Speech recognition</h3>
+      {% if stt_ready %}
+      <p class="text-sm text-muted-foreground leading-relaxed">
+        <span class="text-success font-medium">Ready</span> — voice is transcribed on this computer (no Google).
+      </p>
+      {% else %}
+      <p class="text-sm text-muted-foreground leading-relaxed">
+        The speech model downloads on first recording (~40 MB, one time). You can also type answers below the mic.
+      </p>
+      {% endif %}
+    </div>
+
+    <div class="bg-card rounded-2xl border border-border p-6">
+      <h3 class="font-semibold mb-2">AI engine</h3>
+      {% if ollama_ready %}
+      <p class="text-sm text-muted-foreground leading-relaxed">
+        <span class="text-success font-medium">Ollama connected</span> — smarter, natural tutor replies.
+      </p>
+      {% else %}
+      <p class="text-sm text-muted-foreground leading-relaxed">
+        Using built-in tutor prompts. For better replies, install
+        <a href="https://ollama.com" class="text-primary hover:underline" target="_blank" rel="noopener">Ollama</a>
+        and run <code class="text-xs bg-secondary/50 rounded px-1">ollama pull llama3.2</code>.
+      </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div
+  id="speaking-config"
+  class="hidden"
+  data-start-url="{% url 'speaking_start' %}"
+  data-chat-url="{% url 'speaking_chat' %}"
+  data-transcribe-url="{% url 'speaking_transcribe' %}"
+  data-end-url="{% url 'speaking_end' %}"
+  data-csrf-token="{{ csrf_token }}"
+></div>

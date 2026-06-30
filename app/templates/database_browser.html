@@ -1,0 +1,54 @@
+{% extends "base_plain.html" %}
+{% block title %}Database viewer — DEV{% endblock %}
+{% block body %}
+<div class="min-h-screen bg-background text-foreground p-6 md:p-10">
+  <div class="max-w-6xl mx-auto space-y-8">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h1 class="font-display text-3xl font-bold">Database viewer</h1>
+        <p class="text-sm text-muted-foreground mt-1 font-mono">{{ db_path }}</p>
+      </div>
+      <a href="{% url 'landing' %}" class="btn btn-glass">← Back</a>
+    </div>
+
+    <p class="text-sm text-muted-foreground rounded-xl border border-border bg-card/50 px-4 py-3">
+      Development tool only. Passwords are hidden. Register a user at
+      <a href="{% url 'register' %}" class="text-primary hover:underline">/register/</a>
+      to see data appear in the <strong>users</strong> table.
+    </p>
+
+    {% for table in tables %}
+    <section class="glass rounded-2xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-border flex items-center justify-between">
+        <h2 class="font-semibold font-mono">{{ table.name }}</h2>
+        <span class="text-xs bg-secondary px-2.5 py-1 rounded-full">{{ table.count }} row{{ table.count|pluralize }}</span>
+      </div>
+      {% if table.rows %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-border bg-secondary/40">
+              {% for col in table.columns %}
+              <th class="text-left px-4 py-2 font-medium text-muted-foreground whitespace-nowrap">{{ col }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in table.rows %}
+            <tr class="border-b border-border/40 last:border-0 hover:bg-secondary/20">
+              {% for cell in row %}
+              <td class="px-4 py-2 font-mono text-xs whitespace-nowrap max-w-xs truncate">{{ cell }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="px-5 py-8 text-center text-muted-foreground text-sm">No rows yet.</p>
+      {% endif %}
+    </section>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

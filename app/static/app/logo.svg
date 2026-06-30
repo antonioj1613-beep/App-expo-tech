@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Learning Skills">
+  <defs>
+    <linearGradient id="ls-gradient" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#9B5CFF"/>
+      <stop offset="100%" stop-color="#2DD4FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#ls-gradient)"/>
+  <text x="256" y="348" text-anchor="middle" font-family="Inter, Arial, system-ui, sans-serif" font-size="300" font-weight="800" fill="#0A0A0F">L</text>
+</svg>

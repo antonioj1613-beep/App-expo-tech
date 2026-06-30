@@ -1,0 +1,163 @@
+{% extends "base_plain.html" %}
+{% load static %}
+{% block title %}Learning Skills — Master English, one skill at a time{% endblock %}
+{% block body %}
+<div class="min-h-screen bg-background text-foreground relative overflow-hidden">
+  <div class="pointer-events-none absolute inset-0 bg-gradient-mesh opacity-80"></div>
+  <div class="pointer-events-none absolute inset-0 grid-bg opacity-40"></div>
+
+  <header class="fade-in relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-6 flex items-center justify-between">
+    <a href="{% url 'landing' %}" class="flex items-center gap-2.5">
+      {% include "partials/logo.html" %}
+      <span class="font-display font-bold text-lg tracking-tight">Learning Skills</span>
+    </a>
+    <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+      <a href="#about" class="hover:text-foreground transition">About</a>
+      <a href="#tools" class="hover:text-foreground transition">Tools</a>
+      <a href="#features" class="hover:text-foreground transition">Features</a>
+      <a href="#lisa" class="hover:text-foreground transition">Lisa</a>
+    </nav>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleTheme()" class="btn btn-ghost btn-icon rounded-full"><i data-lucide="sun-moon" class="h-[18px] w-[18px]"></i></button>
+      <a href="{% url 'login' %}" class="btn btn-ghost hidden sm:inline-flex">Sign in</a>
+      <a href="{% url 'register' %}" class="btn btn-hero">Get started <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
+    </div>
+  </header>
+
+  <!-- Hero: Learning Skills -->
+  <section class="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pt-16 pb-20 text-center">
+    <div class="fade-in inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs font-medium mb-8">
+      <span class="h-1.5 w-1.5 rounded-full bg-gradient-primary animate-glow-pulse"></span>
+      Your complete English learning platform
+    </div>
+    <h1 class="fade-in font-display text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.95]" data-delay="60">
+      Master English<br /><span class="text-gradient">one skill at a time.</span>
+    </h1>
+    <p class="fade-in mt-7 max-w-2xl mx-auto text-lg text-muted-foreground leading-relaxed" data-delay="120">
+      Learning Skills is a structured platform for serious learners. Practice listening, reading, writing, and vocabulary — track your progress, earn XP, and climb through 15 levels at your own pace.
+    </p>
+    <div class="fade-in mt-10 flex flex-wrap items-center justify-center gap-3" data-delay="180">
+      <a href="{% url 'register' %}" class="btn btn-hero btn-xl">Start learning free <i data-lucide="arrow-right" class="h-5 w-5"></i></a>
+      <a href="{% url 'dashboard' %}" class="btn btn-glass btn-xl">See live demo</a>
+    </div>
+  </section>
+
+  <!-- About: what Learning Skills is -->
+  <section id="about" class="landing-section relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-20">
+    <div class="fade-in text-center mb-14">
+      <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-3">What is Learning Skills?</p>
+      <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Built for real progress.</h2>
+      <p class="mt-4 max-w-2xl mx-auto text-muted-foreground leading-relaxed">
+        A focused learning app that puts skill-building first. No fluff — just the tools, structure, and motivation you need to go from beginner to fluent.
+      </p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      {% for item in about %}
+      <div class="fade-in glass rounded-2xl p-8 text-center hover:shadow-glow transition-all hover:-translate-y-1" data-delay="{% widthratio forloop.counter0|add:1 1 50 %}">
+        <div class="h-12 w-12 rounded-xl bg-primary/15 grid place-items-center mx-auto mb-5"><i data-lucide="{{ item.icon }}" class="h-6 w-6 text-primary"></i></div>
+        <h3 class="font-semibold text-lg mb-2">{{ item.t }}</h3>
+        <p class="text-sm text-muted-foreground leading-relaxed">{{ item.d }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Tools: everything in the app -->
+  <section id="tools" class="landing-section relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-20">
+    <div class="fade-in text-center mb-14">
+      <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-3">Inside the app</p>
+      <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Every tool you need.</h2>
+      <p class="mt-4 max-w-2xl mx-auto text-muted-foreground leading-relaxed">
+        Learning Skills bundles dedicated practice modules, progress tracking, and gamification into one cohesive experience.
+      </p>
+    </div>
+    <div class="relative max-w-5xl mx-auto">
+      <div class="absolute -inset-8 bg-gradient-glow opacity-40 blur-3xl pointer-events-none"></div>
+      <div class="fade-in relative glass-strong rounded-3xl p-2 shadow-elegant">
+        <div class="rounded-2xl bg-card/80 p-6 md:p-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
+          {% for t in tools %}
+          <a href="{% url t.url %}" class="fade-in group space-y-3 rounded-xl p-4 -m-4 hover:bg-secondary/40 transition" data-delay="{% widthratio forloop.counter0|add:1 1 50 %}">
+            <div class="h-11 w-11 rounded-xl bg-primary/15 grid place-items-center group-hover:bg-gradient-primary group-hover:shadow-glow transition-all">
+              <i data-lucide="{{ t.icon }}" class="h-5 w-5 text-primary group-hover:text-primary-foreground transition-colors"></i>
+            </div>
+            <h3 class="font-semibold group-hover:text-primary transition-colors">{{ t.t }}</h3>
+            <p class="text-sm text-muted-foreground">{{ t.d }}</p>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features: platform capabilities -->
+  <section id="features" class="landing-section relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-20">
+    <div class="fade-in text-center mb-14">
+      <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-3">Platform features</p>
+      <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Built for serious learners.</h2>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      {% for f in features %}
+      <div class="fade-in glass rounded-2xl p-6 hover:shadow-glow transition-all hover:-translate-y-1" data-delay="{% widthratio forloop.counter0|add:1 1 50 %}">
+        <div class="h-11 w-11 rounded-xl bg-gradient-primary grid place-items-center shadow-glow mb-4"><i data-lucide="{{ f.icon }}" class="h-5 w-5 text-primary-foreground"></i></div>
+        <h3 class="font-semibold text-lg mb-2">{{ f.t }}</h3>
+        <p class="text-sm text-muted-foreground leading-relaxed">{{ f.d }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Lisa: the big surprise -->
+  <section id="lisa" class="landing-section relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-20">
+    <div class="fade-in glass-strong rounded-3xl p-10 md:p-16 shadow-elegant relative overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-glow opacity-50 pointer-events-none"></div>
+      <div class="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="relative grid md:grid-cols-[1fr_auto] gap-10 items-center">
+        <div class="text-center md:text-left">
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/15 text-primary text-xs font-semibold mb-6">
+            <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+            The surprise inside
+          </div>
+          <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">
+            Meet <span class="text-gradient">Lisa</span> — your AI companion.
+          </h2>
+          <p class="mt-5 text-muted-foreground leading-relaxed max-w-xl">
+            Learning Skills is the platform. Lisa is the secret weapon. She lives inside the app as your personal AI tutor — analyzing pronunciation, correcting grammar in real time, and adapting every lesson to your weaknesses. Most learners discover her after their first session. You just did.
+          </p>
+          <ul class="mt-6 space-y-3 text-sm text-muted-foreground">
+            <li class="flex items-center gap-2.5 justify-center md:justify-start"><i data-lucide="check-circle" class="h-4 w-4 text-success shrink-0"></i> Real-time conversation tutor — now in beta</li>
+            <li class="flex items-center gap-2.5 justify-center md:justify-start"><i data-lucide="check-circle" class="h-4 w-4 text-success shrink-0"></i> Pronunciation, grammar, and tone analyzed instantly</li>
+            <li class="flex items-center gap-2.5 justify-center md:justify-start"><i data-lucide="check-circle" class="h-4 w-4 text-success shrink-0"></i> Personalized lessons that adapt every day</li>
+          </ul>
+        </div>
+        <div class="flex justify-center">
+          <div class="relative">
+            <div class="absolute -inset-6 bg-gradient-glow opacity-70 blur-2xl animate-glow-pulse"></div>
+            <div class="relative h-36 w-36 md:h-44 md:w-44 rounded-3xl bg-gradient-primary grid place-items-center shadow-glow">
+              <i data-lucide="sparkles" class="h-16 w-16 md:h-20 md:w-20 text-primary-foreground"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="landing-section relative z-10 max-w-5xl mx-auto px-6 lg:px-8 py-20">
+    <div class="fade-in glass-strong rounded-3xl p-12 md:p-16 text-center shadow-elegant relative overflow-hidden">
+      <div class="absolute inset-0 bg-gradient-glow opacity-40"></div>
+      <div class="relative">
+        <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Ready to build real skills?</h2>
+        <p class="mt-4 text-muted-foreground max-w-xl mx-auto">Join 200,000+ learners mastering English with Learning Skills — and discover Lisa along the way.</p>
+        <a href="{% url 'register' %}" class="btn btn-hero btn-xl mt-8">Get started free <i data-lucide="arrow-right" class="h-5 w-5"></i></a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="fade-in relative z-10 border-t border-border/60 py-8 text-center text-sm text-muted-foreground">
+    © 2026 Learning Skills. Powered by Lisa. Crafted with care.
+  </footer>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'app/scroll-reveal.js' %}" defer></script>
+{% endblock %}

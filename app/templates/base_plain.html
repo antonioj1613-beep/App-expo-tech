@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    {% include "partials/head.html" %}
+    <title>{% block title %}Lisa{% endblock %}</title>
+  </head>
+  <body>
+    {% block body %}{% endblock %}
+    {% block scripts %}{% endblock %}
+    <script>if (window.lucide) lucide.createIcons();</script>
+  </body>
+</html>

@@ -1,0 +1,22 @@
+{% extends "base_app.html" %}
+{% block title %}Notifications — Lisa{% endblock %}
+{% block main %}
+{% include "partials/header.html" with title="Notifications" subtitle="3 new updates" %}
+<main class="flex-1 p-4 md:p-8 max-w-3xl">
+  <div class="flex items-center justify-between mb-4">
+    <p class="text-sm text-muted-foreground">Recent activity</p>
+    <button class="btn btn-ghost btn-sm"><i data-lucide="check" class="h-3.5 w-3.5"></i> Mark all read</button>
+  </div>
+  <div class="glass rounded-2xl">
+    <div class="p-2">
+      {% for n in items %}
+      <div class="flex items-start gap-4 p-4 rounded-xl transition hover:bg-secondary/40 {% if n.new %}bg-primary/[0.04]{% endif %}">
+        <div class="h-10 w-10 rounded-xl grid place-items-center shrink-0 {{ n.c }}"><i data-lucide="{{ n.icon }}" class="h-5 w-5"></i></div>
+        <div class="flex-1 min-w-0"><p class="text-sm font-medium leading-snug">{{ n.t }}</p><p class="text-xs text-muted-foreground mt-1">{{ n.d }}</p></div>
+        {% if n.new %}<span class="bg-primary/15 text-primary text-[10px] px-2 py-0.5 rounded-full">New</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</main>
+{% endblock %}

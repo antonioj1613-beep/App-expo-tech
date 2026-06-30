@@ -1,0 +1,95 @@
+{% extends "base_plain.html" %}
+{% block title %}{% if mode == "login" %}Sign in — Learning Skills{% else %}Create account — Learning Skills{% endif %}{% endblock %}
+{% block body %}
+<div class="min-h-screen flex bg-background relative overflow-hidden">
+  <div class="pointer-events-none absolute inset-0 bg-gradient-mesh opacity-70"></div>
+  <div class="pointer-events-none absolute inset-0 grid-bg opacity-30"></div>
+
+  <div class="relative z-10 flex-1 flex flex-col px-6 py-8 lg:px-16">
+    <div class="flex items-center justify-between">
+      <a href="{% url 'landing' %}" class="flex items-center gap-2.5">
+        {% include "partials/logo.html" %}
+        <span class="font-display font-bold tracking-tight">Learning Skills</span>
+      </a>
+      <button onclick="toggleTheme()" class="btn btn-ghost btn-icon rounded-full"><i data-lucide="sun-moon" class="h-[18px] w-[18px]"></i></button>
+    </div>
+
+    <div class="flex-1 grid place-items-center py-12">
+      <div class="w-full max-w-sm animate-fade-in">
+        <h1 class="font-display text-3xl font-bold tracking-tight">{% if mode == "login" %}Welcome back{% else %}Create your account{% endif %}</h1>
+        <p class="mt-2 text-sm text-muted-foreground">{% if mode == "login" %}Sign in to continue your learning journey.{% else %}Start learning English with AI in seconds.{% endif %}</p>
+
+        {% include "partials/form_messages.html" %}
+
+        <form method="post" class="mt-8 space-y-4" novalidate>
+          {% csrf_token %}
+          {% if mode != "login" %}
+          <div class="space-y-1.5">
+            <label for="username" class="text-sm font-medium">Username</label>
+            <input id="username" name="username" type="text" placeholder="janedoe" class="field" value="{{ username_value|default:'' }}" autocomplete="username" />
+          </div>
+          {% else %}
+          <div class="space-y-1.5">
+            <label for="login" class="text-sm font-medium">Username or email</label>
+            <input id="login" name="login" type="text" placeholder="you@example.com" class="field" value="{{ login_value|default:'' }}" autocomplete="username" />
+          </div>
+          {% endif %}
+          {% if mode != "login" %}
+          <div class="space-y-1.5">
+            <label for="email" class="text-sm font-medium">Email</label>
+            <input id="email" name="email" type="email" placeholder="you@example.com" class="field" value="{{ email_value|default:'' }}" autocomplete="email" />
+          </div>
+          {% endif %}
+          <div class="space-y-1.5">
+            <label for="password" class="text-sm font-medium">Password</label>
+            <input id="password" name="password" type="password" placeholder="••••••••" class="field" autocomplete="{% if mode == 'login' %}current-password{% else %}new-password{% endif %}" />
+            <label for="show-password" class="form-check">
+              <input id="show-password" type="checkbox" />
+              <span>Show password</span>
+            </label>
+          </div>
+          <button type="submit" class="btn btn-hero btn-lg w-full mt-2">{% if mode == "login" %}Sign in{% else %}Create account{% endif %} <i data-lucide="arrow-right" class="h-4 w-4"></i></button>
+        </form>
+
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-border"></div></div>
+          <div class="relative flex justify-center"><span class="bg-background px-3 text-xs text-muted-foreground">or continue with</span></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3"><button type="button" class="btn btn-glass">Google</button><button type="button" class="btn btn-glass">Apple</button></div>
+
+        <p class="mt-6 text-center text-sm text-muted-foreground">
+          {% if mode == "login" %}Don't have an account? <a href="{% url 'register' %}" class="text-primary font-medium hover:underline">Sign up</a>
+          {% else %}Already have one? <a href="{% url 'login' %}" class="text-primary font-medium hover:underline">Sign in</a>{% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="hidden lg:flex relative z-10 flex-1 items-center justify-center p-12">
+    <div class="absolute inset-12 rounded-3xl bg-gradient-primary opacity-10 blur-3xl"></div>
+    <div class="relative glass-strong rounded-3xl p-10 max-w-md shadow-elegant">
+      <div class="mb-6">{% include "partials/logo.html" with size="md" %}</div>
+      <h2 class="font-display text-3xl font-bold tracking-tight leading-tight">Speak with confidence. <span class="text-gradient">Learn the modern way.</span></h2>
+      <p class="mt-4 text-muted-foreground leading-relaxed">Lisa adapts to your level in real time — practice listening, reading, and writing with an AI tutor that actually understands you.</p>
+      <div class="mt-8 grid grid-cols-3 gap-4 text-center">
+        <div><div class="text-2xl font-bold text-gradient">15</div><div class="text-xs text-muted-foreground">Levels</div></div>
+        <div><div class="text-2xl font-bold text-gradient">200k+</div><div class="text-xs text-muted-foreground">Learners</div></div>
+        <div><div class="text-2xl font-bold text-gradient">4.9★</div><div class="text-xs text-muted-foreground">Rating</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    var checkbox = document.getElementById("show-password");
+    var password = document.getElementById("password");
+    if (!checkbox || !password) return;
+
+    checkbox.addEventListener("change", function () {
+      password.type = checkbox.checked ? "text" : "password";
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base_app.html" %}
+{% block title %}Vocabulary — Lisa{% endblock %}
+{% block main %}
+{% include "partials/header.html" with title="Vocabulary" subtitle=skill.subtitle %}
+<main class="flex-1 p-4 md:p-8 space-y-6">
+  <div class="grid sm:grid-cols-3 gap-4">
+    {% for s in stats %}
+    <div class="bg-card rounded-2xl border border-border p-5">
+      <p class="text-xs text-muted-foreground font-medium">{{ s.l }}</p>
+      <p class="text-3xl font-bold tracking-tight mt-1 text-gradient">{{ s.v }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for w in words %}
+    <div class="bg-card rounded-2xl border border-border p-5 hover:shadow-glow transition-all hover:-translate-y-0.5 hover:border-primary/40 group">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <h3 class="font-display text-xl font-bold tracking-tight">{{ w.w }}</h3>
+          <p class="text-xs text-muted-foreground font-mono mt-0.5">{{ w.ipa }}</p>
+        </div>
+        <div class="flex flex-col items-end gap-1">
+          <span class="text-[10px] bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full">{{ w.lv }}</span>
+          {% if w.mastered %}<span class="inline-flex items-center bg-success/15 text-success text-[10px] px-2 py-0.5 rounded-full"><i data-lucide="check" class="h-2.5 w-2.5 mr-0.5"></i> Mastered</span>{% endif %}
+        </div>
+      </div>
+      <p class="text-sm text-foreground/90 mt-2">{{ w.meaning }}</p>
+      <p class="text-xs italic text-muted-foreground mt-2 leading-relaxed">"{{ w.ex }}"</p>
+      <div class="mt-4 flex items-center gap-2">
+        <button class="btn btn-glass btn-sm"><i data-lucide="volume-2" class="h-3.5 w-3.5"></i> Listen</button>
+        <button class="btn btn-ghost btn-sm ml-auto"><i data-lucide="star" class="h-3.5 w-3.5"></i></button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,35 @@
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  {% for c in cards %}
+  <div class="bg-card rounded-2xl border border-border p-5">
+    <p class="text-xs text-muted-foreground font-medium">{{ c.l }}</p>
+    <p class="text-3xl font-bold tracking-tight mt-1">{{ c.v }}</p>
+    <span class="inline-flex mt-2 text-[10px] px-2 py-0.5 rounded-full {% if c.trend == 'success' %}bg-success/15 text-success{% else %}bg-primary/15 text-primary{% endif %}">{{ c.d }}</span>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="grid lg:grid-cols-3 gap-6">
+  <div class="bg-card rounded-2xl border border-border lg:col-span-2 p-6">
+    <h3 class="font-semibold">XP over time</h3>
+    <p class="text-sm text-muted-foreground mb-4">Monthly XP earned</p>
+    <canvas id="xpTime" height="110"></canvas>
+  </div>
+  <div class="bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold">Time distribution</h3>
+    <p class="text-sm text-muted-foreground mb-4">This month by skill</p>
+    <canvas id="pie" height="160"></canvas>
+  </div>
+</div>
+
+<div class="grid lg:grid-cols-2 gap-6">
+  <div class="bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold">Skill levels</h3>
+    <p class="text-sm text-muted-foreground mb-4">Current progress per skill</p>
+    <canvas id="bars" height="130"></canvas>
+  </div>
+  <div class="bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold">Accuracy trend</h3>
+    <p class="text-sm text-muted-foreground mb-4">Last 7 weeks</p>
+    <canvas id="acc" height="130"></canvas>
+  </div>
+</div>

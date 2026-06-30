@@ -1,0 +1,29 @@
+{% extends "base_app.html" %}
+{% block title %}Dashboard — Learning Skills{% endblock %}
+{% block main %}
+{% include "partials/header.html" with title=page_title subtitle=page_subtitle %}
+<main class="flex-1 p-4 md:p-8 space-y-6 relative">
+  {% if is_new_user %}
+  {% include "partials/dashboard_new_user.html" %}
+  {% else %}
+  {% include "partials/dashboard_returning.html" %}
+  {% endif %}
+</main>
+{% endblock %}
+{% block scripts %}
+{% if not is_new_user %}
+<script>
+  const ctx = document.getElementById("xpChart");
+  const css = getComputedStyle(document.documentElement);
+  const purple = "rgb(176 105 255)";
+  const grad = ctx.getContext("2d").createLinearGradient(0, 0, 0, 240);
+  grad.addColorStop(0, "rgba(176,105,255,0.5)");
+  grad.addColorStop(1, "rgba(176,105,255,0)");
+  new Chart(ctx, {
+    type: "line",
+    data: { labels: {{ week_labels|safe }}, datasets: [{ data: {{ week_data|safe }}, borderColor: purple, backgroundColor: grad, borderWidth: 2.5, fill: true, tension: 0.4, pointRadius: 0 }] },
+    options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: "rgb(156 157 174)" } }, y: { grid: { color: "rgba(120,120,140,0.15)" }, ticks: { color: "rgb(156 157 174)" } } } },
+  });
+</script>
+{% endif %}
+{% endblock %}

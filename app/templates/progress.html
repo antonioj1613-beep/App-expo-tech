@@ -1,0 +1,12 @@
+{% extends "base_app.html" %}
+{% block title %}Progress — Learning Skills{% endblock %}
+{% block main %}
+{% include "partials/header.html" with title="Progress" subtitle=page_subtitle %}
+<main class="flex-1 p-4 md:p-8 space-y-6">
+  {% if is_new_user %}
+  {% include "partials/progress_new_user.html" %}
+  {% else %}
+  {% include "partials/progress_returning.html" %}
+  {% endif %}
+</main>
+{% endblock %}

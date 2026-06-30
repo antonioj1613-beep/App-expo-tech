@@ -1,0 +1,65 @@
+{% extends "base_app.html" %}
+{% block title %}Settings — Lisa{% endblock %}
+{% block main %}
+{% include "partials/header.html" with title="Settings" subtitle="Customize your learning experience" %}
+<main class="flex-1 p-4 md:p-8 space-y-6 max-w-3xl">
+  <div class="bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold flex items-center gap-2"><i data-lucide="sun" class="h-4 w-4 text-primary"></i> Appearance</h3>
+    <p class="text-sm text-muted-foreground mb-4">Choose how Lisa looks for you</p>
+    <div class="grid grid-cols-2 gap-3">
+      <button onclick="setTheme('light')" id="lightCard" class="theme-card p-4 rounded-2xl border-2 border-border hover:border-primary/40 transition-all">
+        <div class="h-20 rounded-xl bg-white border border-border mb-3 grid place-items-center"><i data-lucide="sun" class="h-6 w-6 text-gray-900"></i></div>
+        <p class="text-sm font-medium text-left">Light</p>
+      </button>
+      <button onclick="setTheme('dark')" id="darkCard" class="theme-card p-4 rounded-2xl border-2 border-border hover:border-primary/40 transition-all">
+        <div class="h-20 rounded-xl mb-3 grid place-items-center" style="background:rgb(13 14 28);border:1px solid rgb(37 39 60)"><i data-lucide="moon" class="h-6 w-6 text-primary-glow"></i></div>
+        <p class="text-sm font-medium text-left">Dark</p>
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold flex items-center gap-2 mb-2"><i data-lucide="bell" class="h-4 w-4 text-primary"></i> Notifications</h3>
+    {% for s in notif %}
+    <div class="flex items-start justify-between py-3 border-b border-border/40 last:border-0">
+      <div><p class="text-sm font-medium">{{ s.l }}</p><p class="text-xs text-muted-foreground mt-0.5">{{ s.d }}</p></div>
+      <div class="switch {% if s.on %}on{% endif %}" onclick="this.classList.toggle('on')"></div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold flex items-center gap-2 mb-2"><i data-lucide="globe" class="h-4 w-4 text-primary"></i> Language &amp; region</h3>
+    {% for r in region %}
+    <div class="flex items-center justify-between py-3 border-b border-border/40 last:border-0">
+      <p class="text-sm font-medium">{{ r.l }}</p>
+      <button class="btn btn-ghost btn-sm">{{ r.v }}</button>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="bg-card rounded-2xl border border-border p-6">
+    <h3 class="font-semibold flex items-center gap-2 mb-3"><i data-lucide="shield" class="h-4 w-4 text-primary"></i> Privacy &amp; security</h3>
+    <div class="space-y-3">
+      <button class="btn btn-glass w-full justify-start">Change password</button>
+      <button class="btn btn-glass w-full justify-start">Two-factor authentication</button>
+      <a href="{% url 'logout' %}" class="btn btn-glass w-full justify-start">Sign out</a>
+      <button class="btn btn-glass w-full justify-start text-destructive">Delete account</button>
+    </div>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+  function syncThemeCards() {
+    const dark = document.documentElement.classList.contains("dark");
+    document.getElementById("darkCard").classList.toggle("border-primary", dark);
+    document.getElementById("darkCard").classList.toggle("shadow-glow", dark);
+    document.getElementById("lightCard").classList.toggle("border-primary", !dark);
+    document.getElementById("lightCard").classList.toggle("shadow-glow", !dark);
+  }
+  const _set = window.setTheme;
+  window.setTheme = function (m) { _set(m); syncThemeCards(); };
+  syncThemeCards();
+</script>
+{% endblock %}

@@ -1,0 +1,62 @@
+<div class="glass rounded-2xl overflow-hidden relative">
+  <div class="absolute inset-0 bg-gradient-glow opacity-50"></div>
+  <div class="relative p-8 grid md:grid-cols-3 gap-6 items-center">
+    <div class="md:col-span-2">
+      <span class="inline-flex bg-primary/15 text-primary text-xs px-2.5 py-1 rounded-full mb-3">Overall</span>
+      <h2 class="font-display text-3xl font-bold tracking-tight">
+        Level {{ overall_level }} · <span class="text-gradient">{{ overall_label }}</span>
+      </h2>
+      <p class="text-sm text-muted-foreground mt-2">You're {{ overall_progress }}% to next milestone. Keep going!</p>
+      <div class="h-2.5 rounded-full bg-secondary overflow-hidden mt-4 max-w-md">
+        <div class="h-full bg-gradient-primary rounded-full" style="width:{{ overall_progress }}%"></div>
+      </div>
+    </div>
+    <div class="grid grid-cols-3 gap-3 text-center">
+      {% for c in chips %}
+      <div class="glass rounded-xl p-3">
+        <i data-lucide="{{ c.i }}" class="h-4 w-4 text-primary mx-auto mb-1"></i>
+        <p class="font-bold text-lg">{{ c.v }}</p>
+        <p class="text-[10px] text-muted-foreground">{{ c.l }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="grid md:grid-cols-2 gap-4">
+  {% for s in skills %}
+  <div class="bg-card rounded-2xl border border-border p-6">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div class="h-11 w-11 rounded-xl bg-gradient-primary grid place-items-center shadow-glow">
+          <i data-lucide="{{ s.icon }}" class="h-5 w-5 text-primary-foreground"></i>
+        </div>
+        <div>
+          <h3 class="font-semibold">{{ s.n }}</h3>
+          <p class="text-xs text-muted-foreground">Level {{ s.lv }} · {{ s.status|default:"In progress" }}</p>
+        </div>
+      </div>
+      <span class="text-2xl font-bold text-gradient">{{ s.p }}%</span>
+    </div>
+    <div class="h-2 rounded-full bg-secondary overflow-hidden">
+      <div class="h-full bg-gradient-primary rounded-full" style="width:{{ s.p }}%"></div>
+    </div>
+    <p class="text-xs text-muted-foreground mt-2">{{ s.lessons }} lessons completed</p>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="bg-card rounded-2xl border border-border p-6">
+  <h3 class="font-semibold">Recent achievements</h3>
+  <p class="text-sm text-muted-foreground mb-4">You earned 6 new badges this month</p>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+    {% for b in badges %}
+    <div class="glass rounded-2xl p-4 text-center hover:shadow-glow transition">
+      <div class="h-12 w-12 rounded-2xl bg-gradient-primary grid place-items-center mx-auto mb-2 shadow-glow">
+        <i data-lucide="trophy" class="h-6 w-6 text-primary-foreground"></i>
+      </div>
+      <p class="text-xs font-medium">Badge {{ b }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>

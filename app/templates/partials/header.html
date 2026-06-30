@@ -1,0 +1,31 @@
+<header class="sticky top-0 z-30 flex h-16 items-center gap-3 app-divider-b bg-background/70 backdrop-blur-xl px-4 md:px-8">
+  <button onclick="document.getElementById('sidebar').classList.toggle('hidden')" class="btn btn-ghost btn-icon">
+    <i data-lucide="panel-left" class="h-5 w-5"></i>
+  </button>
+  <div class="hidden md:flex flex-col min-w-0">
+    <h1 class="text-sm font-semibold leading-none truncate">{{ title }}</h1>
+    {% if subtitle %}<p class="text-xs text-muted-foreground mt-1 truncate">{{ subtitle }}</p>{% endif %}
+  </div>
+  <div class="ml-auto flex items-center gap-2">
+    <div class="hidden md:flex relative">
+      <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"></i>
+      <input placeholder="Search lessons, words…" class="field pl-9 w-64 h-9 bg-secondary/50" />
+    </div>
+    <button onclick="toggleTheme()" class="btn btn-ghost btn-icon rounded-full">
+      <i data-lucide="sun-moon" class="h-[18px] w-[18px]"></i>
+    </button>
+    <button class="btn btn-ghost btn-icon rounded-full relative">
+      <i data-lucide="bell" class="h-[18px] w-[18px]"></i>
+      <span class="absolute top-2 right-2 h-2 w-2 rounded-full bg-gradient-primary shadow-glow"></span>
+    </button>
+    <a href="{% url 'profile' %}" class="h-9 w-9 rounded-full bg-gradient-primary grid place-items-center text-primary-foreground text-xs font-semibold ring-2 ring-primary/30" title="Profile">{% if app_user %}{{ app_user.initials }}{% else %}?{% endif %}</a>
+    <a href="{% url 'logout' %}" class="btn btn-ghost btn-icon rounded-full text-muted-foreground hover:text-destructive" title="Log out">
+      <i data-lucide="log-out" class="h-[18px] w-[18px]"></i>
+    </a>
+  </div>
+</header>
+{% if messages %}
+<div class="app-divider-b bg-background/90 px-4 md:px-8 py-3">
+  {% include "partials/form_messages.html" %}
+</div>
+{% endif %}
