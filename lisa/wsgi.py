@@ -1,5 +1,6 @@
-import os
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lisa.settings.production")
+from lisa.settings._bootstrap import configure_settings_module
+
+configure_settings_module()
 application = get_wsgi_application()

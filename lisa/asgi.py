@@ -1,6 +1,6 @@
-import os
-
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lisa.settings.production")
+from lisa.settings._bootstrap import configure_settings_module
+
+configure_settings_module()
 application = get_asgi_application()

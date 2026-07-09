@@ -1,0 +1,12 @@
+{
+  "env": {
+    "DJANGO_SETTINGS_MODULE": "lisa.settings.production",
+    "DJANGO_DEBUG": "False",
+    "DJANGO_ALLOWED_HOSTS": ".vercel.app"
+  },
+  "build": {
+    "env": {
+      "DJANGO_SETTINGS_MODULE": "lisa.settings.production"
+    }
+  }
+}
