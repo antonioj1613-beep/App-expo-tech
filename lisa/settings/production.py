@@ -1,7 +1,12 @@
 """Production settings."""
+import os
+
 from .base import *  # noqa: F403
 
 DEBUG = False
+
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
 
 # Security headers (enable when serving over HTTPS).
 SECURE_BROWSER_XSS_FILTER = True
@@ -13,3 +18,7 @@ SECURE_HSTS_SECONDS = int(os.environ.get("DJANGO_HSTS_SECONDS", "31536000"))  # 
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Vercel terminates TLS at the edge — avoid redirect loops.
+if os.environ.get("VERCEL"):
+    SECURE_SSL_REDIRECT = False

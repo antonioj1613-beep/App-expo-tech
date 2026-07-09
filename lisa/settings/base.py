@@ -20,6 +20,29 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+# Vercel deployments (preview + production URLs under *.vercel.app).
+if os.environ.get("VERCEL") or os.environ.get("VERCEL_URL"):
+    for host in (".vercel.app",):
+        if host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(host)
+    vercel_url = os.environ.get("VERCEL_URL", "").strip().removeprefix("https://").removeprefix("http://")
+    if vercel_url and vercel_url not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(vercel_url)
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+if os.environ.get("VERCEL") or os.environ.get("VERCEL_URL"):
+    for origin in ("https://.vercel.app",):
+        if origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(origin)
+    if vercel_url := os.environ.get("VERCEL_URL", "").strip():
+        https_origin = vercel_url if vercel_url.startswith("https://") else f"https://{vercel_url}"
+        if https_origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(https_origin)
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
