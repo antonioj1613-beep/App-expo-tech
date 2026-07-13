@@ -23,3 +23,5 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 # Vercel terminates TLS at the edge — avoid redirect loops.
 if os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
     SECURE_SSL_REDIRECT = False
+    # CDN serves static on Vercel; avoid Manifest storage entirely.
+    STORAGES["staticfiles"]["BACKEND"] = "whitenoise.storage.CompressedStaticFilesStorage"  # noqa: F405

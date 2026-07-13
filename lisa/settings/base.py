@@ -129,12 +129,14 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "app" / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Use CompressedStaticFilesStorage (not Manifest) — Manifest's staticfiles.json
+# breaks Vercel's collectstatic copy step (ENOENT under static/static/).
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 
