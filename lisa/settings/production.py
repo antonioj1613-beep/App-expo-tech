@@ -20,5 +20,7 @@ SECURE_HSTS_PRELOAD = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Vercel terminates TLS at the edge — avoid redirect loops.
-if os.environ.get("VERCEL"):
+# Preview hostnames rotate every deploy, so allow all hosts on Vercel.
+if os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
     SECURE_SSL_REDIRECT = False
+    ALLOWED_HOSTS = ["*"]  # noqa: F405

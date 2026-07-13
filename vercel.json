@@ -2,7 +2,7 @@
   "env": {
     "DJANGO_SETTINGS_MODULE": "lisa.settings.production",
     "DJANGO_DEBUG": "False",
-    "DJANGO_ALLOWED_HOSTS": ".vercel.app"
+    "DJANGO_ALLOWED_HOSTS": "*"
   },
   "build": {
     "env": {

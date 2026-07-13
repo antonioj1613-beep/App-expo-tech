@@ -23,25 +23,47 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
-# Also allow the active Vercel deployment hostname when present.
-if os.environ.get("VERCEL") or os.environ.get("VERCEL_URL"):
-    vercel_url = os.environ.get("VERCEL_URL", "").strip().removeprefix("https://").removeprefix("http://")
-    if vercel_url and vercel_url not in ALLOWED_HOSTS:
-        ALLOWED_HOSTS.append(vercel_url)
-
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
-    for origin in os.environ.get(
-        "DJANGO_CSRF_TRUSTED_ORIGINS",
-        "https://.vercel.app",
-    ).split(",")
+    for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
     if origin.strip()
 ]
-if os.environ.get("VERCEL_URL"):
-    vercel_url = os.environ.get("VERCEL_URL", "").strip()
-    https_origin = vercel_url if vercel_url.startswith("https://") else f"https://{vercel_url}"
-    if https_origin not in CSRF_TRUSTED_ORIGINS:
-        CSRF_TRUSTED_ORIGINS.append(https_origin)
+
+# Preview URLs change every deploy (app-expo-tech-<hash>-learning-skills.vercel.app).
+# Allow all hosts on Vercel/serverless so DisallowedHost cannot block them.
+_ON_VERCEL = any(
+    os.environ.get(key)
+    for key in (
+        "VERCEL",
+        "VERCEL_ENV",
+        "VERCEL_URL",
+        "AWS_LAMBDA_FUNCTION_NAME",
+        "LAMBDA_TASK_ROOT",
+    )
+)
+if _ON_VERCEL:
+    ALLOWED_HOSTS = ["*"]
+    _vercel_host = (
+        os.environ.get("VERCEL_URL", "")
+        .strip()
+        .removeprefix("https://")
+        .removeprefix("http://")
+    )
+    if _vercel_host:
+        _origin = f"https://{_vercel_host}"
+        if _origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_origin)
+    # Also trust the project's production/alias domains from Vercel.
+    for _extra in (
+        os.environ.get("VERCEL_PROJECT_PRODUCTION_URL", ""),
+        os.environ.get("VERCEL_BRANCH_URL", ""),
+    ):
+        _extra = _extra.strip().removeprefix("https://").removeprefix("http://")
+        if not _extra:
+            continue
+        _origin = f"https://{_extra}"
+        if _origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_origin)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
