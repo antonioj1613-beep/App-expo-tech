@@ -76,7 +76,10 @@ TEMPLATES = [
 WSGI_APPLICATION = "lisa.wsgi.application"
 ASGI_APPLICATION = "lisa.asgi.application"
 
+from lisa.settings._bootstrap import is_serverless_runtime  # noqa: E402
+
 # Database — SQLite by default; override with DATABASE_URL for PostgreSQL.
+# On Vercel the app bundle is read-only, so SQLite must live under /tmp.
 _database_url = os.environ.get("DATABASE_URL", "").strip()
 if _database_url.startswith("postgres://") or _database_url.startswith("postgresql://"):
     import re
@@ -103,9 +106,18 @@ if _database_url.startswith("postgres://") or _database_url.startswith("postgres
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.sqlite3",
-                "NAME": BASE_DIR / "db.sqlite3",
+                "NAME": Path("/tmp") / "learning_skills.sqlite3"
+                if is_serverless_runtime()
+                else BASE_DIR / "db.sqlite3",
             }
         }
+elif is_serverless_runtime():
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": Path(os.environ.get("TMPDIR") or "/tmp") / "learning_skills.sqlite3",
+        }
+    }
 else:
     DATABASES = {
         "default": {
@@ -113,6 +125,10 @@ else:
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+
+# Cookie sessions avoid read-only SQLite write failures on cold serverless starts.
+if is_serverless_runtime() and not _database_url.startswith("postgres"):
+    SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

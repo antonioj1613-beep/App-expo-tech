@@ -1,10 +1,22 @@
+import logging
+
+from django.db import DatabaseError, OperationalError
+
 from .levels_service import build_nav_skill_states
 from .user_helpers import build_app_user_context, get_logged_in_user
 
+logger = logging.getLogger(__name__)
+
 
 def navigation(request):
-    user = get_logged_in_user(request)
-    skill_states = build_nav_skill_states(user)
+    try:
+        user = get_logged_in_user(request)
+        skill_states = build_nav_skill_states(user)
+    except (OperationalError, DatabaseError) as exc:
+        logger.warning("navigation context skipped (db unavailable): %s", exc)
+        user = None
+        skill_states = {}
+
     learn_items = [
         {"name": "dashboard", "title": "Dashboard", "icon": "layout-dashboard"},
         {"name": "levels", "title": "Levels", "icon": "layers"},
@@ -46,7 +58,11 @@ def navigation(request):
 
 
 def app_user(request):
-    user = get_logged_in_user(request)
-    if not user:
+    try:
+        user = get_logged_in_user(request)
+        if not user:
+            return {"app_user": None}
+        return {"app_user": build_app_user_context(user)}
+    except (OperationalError, DatabaseError) as exc:
+        logger.warning("app_user context skipped (db unavailable): %s", exc)
         return {"app_user": None}
-    return {"app_user": build_app_user_context(user)}
