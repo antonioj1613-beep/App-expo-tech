@@ -5,6 +5,10 @@ import sys
 
 
 def main():
+    # Force production settings when Vercel discovers Django via manage.py.
+    from lisa.settings._bootstrap import configure_settings_module
+
+    configure_settings_module()
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "lisa.settings.development")
     try:
         from django.core.management import execute_from_command_line

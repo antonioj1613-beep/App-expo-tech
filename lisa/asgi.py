@@ -4,3 +4,4 @@ from lisa.settings._bootstrap import configure_settings_module
 
 configure_settings_module()
 application = get_asgi_application()
+app = application
