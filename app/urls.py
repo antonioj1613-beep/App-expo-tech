@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import RedirectView
 
 from . import views
 from . import reading_views
@@ -6,6 +7,11 @@ from . import listening_views
 from . import speaking_views
 
 urlpatterns = [
+    path(
+        "favicon.ico",
+        RedirectView.as_view(url="/static/app/logo.svg", permanent=True),
+        name="favicon",
+    ),
     path("", views.landing, name="landing"),
     path("login/", views.login_view, name="login"),
     path("register/", views.register_view, name="register"),
