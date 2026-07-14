@@ -2,6 +2,12 @@ from datetime import datetime
 
 from .models import PracticeSession, SpeakingSession, User, UserProfile
 
+STALE_SESSION_MESSAGE = (
+    "Your account data is missing from the server database. "
+    "On Vercel this usually means the temporary SQLite file was reset — "
+    "set DATABASE_URL to Postgres (Neon) so accounts persist. Please register or sign in again."
+)
+
 
 def get_logged_in_user(request):
     user_id = request.session.get("user_id")
@@ -11,6 +17,11 @@ def get_logged_in_user(request):
         return User.objects.select_related("profile").get(pk=user_id)
     except User.DoesNotExist:
         return None
+
+
+def invalidate_stale_session(request):
+    """Clear a cookie session whose user_id no longer exists in the database."""
+    request.session.flush()
 
 
 def ensure_profile(user):

@@ -41,7 +41,11 @@ Added full middleware stack including **CSRF**, **sessions**, **auth**, and **Wh
 ### 4. Database
 
 - **Development default:** SQLite (`db.sqlite3`)
-- **Production option:** set `DATABASE_URL=postgres://user:pass@host:5432/dbname`
+- **Vercel / production (required for real accounts):** set `DATABASE_URL` to Postgres
+  - Neon free: https://neon.tech → create project → copy connection string
+  - Must include `?sslmode=require` (or the app adds it automatically on serverless)
+  - Add as a Vercel Environment Variable for **Production** and **Preview**, then redeploy
+  - Without this, the app uses ephemeral `/tmp` SQLite and accounts appear to “delete” themselves
 - Ran all migrations (auth, admin, sessions, contenttypes, app)
 
 ### 5. Models (`app/models.py`)
@@ -61,8 +65,8 @@ Registered in Django admin with inline profile editing on the User admin page.
 ### 7. Static files
 
 - `STATIC_ROOT = staticfiles/` for `collectstatic`
-- WhiteNoise `CompressedManifestStaticFilesStorage` (production)
-- `CompressedStaticFilesStorage` (development — no manifest required)
+- WhiteNoise `CompressedStaticFilesStorage` (Vercel-safe; Manifest storage breaks collectstatic on Vercel)
+- CDN serves collected static on Vercel
 
 ### 8. Security
 
@@ -88,47 +92,107 @@ Structured console logging configured in `base.py` with `DJANGO_LOG_LEVEL` overr
 
 ## Deployment checklist
 
+### A. Before you deploy (local)
+
+- [ ] `python manage.py check` passes
+- [ ] `python manage.py migrate` applies cleanly
+- [ ] `python manage.py seed_skills` (and lesson seeds if needed) run without errors
+- [ ] Local smoke test with `.\start.ps1`: `/`, `/login/`, `/register/`, `/levels/` return 200
+- [ ] No secrets committed (`.env` is in `.gitignore`)
+
+### B. Vercel project settings (one-time)
+
+**Environment variables** (Production + Preview):
+
+| Variable | Required value |
+|---|---|
+| `DJANGO_SETTINGS_MODULE` | `lisa.settings.production` |
+| `DJANGO_DEBUG` | `False` |
+| `DJANGO_SECRET_KEY` | Long random string (never the example key) |
+| `DJANGO_ALLOWED_HOSTS` | `*` (or your domains) |
+| `DATABASE_URL` | **Required for persistent accounts** — Postgres URL (Neon/Supabase/Vercel Postgres) |
+
+#### Postgres setup (Neon — free, ~5 minutes)
+
+1. Sign up at [neon.tech](https://neon.tech) and create a project.
+2. Dashboard → **Connection string** → copy the URI (starts with `postgresql://…`).
+3. Vercel → Project → **Settings → Environment Variables** → add:
+   - Name: `DATABASE_URL`
+   - Value: paste the Neon URI
+   - Environments: Production + Preview
+4. Redeploy the project (Deployments → ⋯ → Redeploy).
+5. First request runs migrations against Postgres automatically (`serverless_boot`).
+6. Register a new account and navigate Profile → Dashboard — you should stay logged in.
+
+Optional: leave `DJANGO_ALLOWED_HOSTS` unset — code already allows all hosts on Vercel.
+
+**Deployment Protection (critical for public links):**
+
+- [ ] **Settings → Deployment Protection → Vercel Authentication → Disabled**  
+  (or Standard Protection that leaves **Production** public)
+- [ ] Confirm strangers are not sent to “Log in to Vercel”
+
+**Share only the Production domain:**
+
+- Good: `https://app-expo-tech-learning-skills.vercel.app`
+- Bad (often gated): `https://app-expo-tech-<hash>-learning-skills.vercel.app` (Preview)
+
+### C. After each deploy (must pass)
+
+Run these against the **Production** URL (incognito / second device):
+
+| # | Check | Expected |
+|---|---|---|
+| 1 | Open `/` | Landing page loads (HTTP **200**, not 500 / DisallowedHost) |
+| 2 | Open site while logged out of Vercel | **No** Vercel login screen |
+| 3 | `/favicon.ico` | Redirect or icon (not a broken app 500) |
+| 4 | `/static/app/theme.css` | CSS loads (200 / CDN) |
+| 5 | `/register/` → create account | Account created; lands on dashboard |
+| 6 | `/login/` | Sign-in works |
+| 7 | `/levels/` | Level cards for Listening / Reading / Writing / Vocabulary |
+| 8 | `/reading/` → answer → submit | Quiz works; XP updates |
+| 9 | `/listening/` → submit | Quiz works |
+| 10 | `/speaking/` | UI loads (full Vosk/Ollama tutor may be limited on Vercel) |
+| 11 | `/dashboard/`, `/progress/`, `/statistics/` | Pages render without 500 |
+| 12 | Hard refresh / second laptop | Same Production URL works without Vercel auth |
+
+### D. Build / runtime failures (common)
+
+| Symptom | Fix |
+|---|---|
+| `DisallowedHost` | Deploy includes `ALLOWED_HOSTS = ["*"]`; set `DJANGO_SETTINGS_MODULE=lisa.settings.production` |
+| `ENOENT ... staticfiles.json` | Use `CompressedStaticFilesStorage` (not Manifest) on Vercel |
+| HTTP **500** on `/` | Cold-start migrate to `/tmp` SQLite; check Runtime Logs |
+| Vercel login wall for visitors | Disable Deployment Protection; share **Production** domain only |
+| Data resets after idle / kicked to login from Profile | Missing or invalid `DATABASE_URL` — add Neon/Postgres and redeploy |
+| Speaking transcription fails | Expected on serverless without Vosk/Ollama — use local `.\start.ps1` for full voice AI |
+
+### E. Promote a known-good build
+
+1. Vercel → **Deployments** → open a deployment that passed section C
+2. **⋯ → Promote to Production** (if it is only a Preview)
+3. Copy the domain from **Settings → Domains**
+4. Retest section C on that domain in incognito
+
+### F. Self-hosted / VPS (non-Vercel)
+
 ```bash
-# 1. Clone / copy project
 cd App-expo-tech
-
-# 2. Virtual environment
 python -m venv .venv
-# Windows PowerShell:
-.\.venv\Scripts\Activate.ps1
-# Windows Command Prompt:
-# .venv\Scripts\activate.bat
-# macOS/Linux:
-# source .venv/bin/activate
+# Windows: .\.venv\Scripts\Activate.ps1
+# macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-
-# 3. Environment
 cp .env.example .env
-# Edit .env:
-#   DJANGO_SECRET_KEY=<50+ random chars>
-#   DJANGO_DEBUG=False
-#   DJANGO_ALLOWED_HOSTS=yourdomain.com
-#   DATABASE_URL=postgres://...
-
-# 4. Database
+# Edit .env: DJANGO_SECRET_KEY, DJANGO_DEBUG=False, hosts, DATABASE_URL
 export DJANGO_SETTINGS_MODULE=lisa.settings.production
 python manage.py migrate
 python manage.py collectstatic --noinput
+python manage.py seed_skills
 python manage.py createsuperuser
-
-# 5. Run with Gunicorn
 gunicorn lisa.wsgi:application --bind 0.0.0.0:8000 --workers 3
 ```
 
-### Behind a reverse proxy (nginx)
-
-Set in `.env`:
-
-```
-DJANGO_SECURE_SSL_REDIRECT=True
-```
-
-Ensure your proxy forwards `X-Forwarded-Proto: https`.
+Behind nginx, set `DJANGO_SECURE_SSL_REDIRECT=True` and forward `X-Forwarded-Proto: https`.
 
 ### Generate a secret key
 
@@ -143,21 +207,20 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 - `python manage.py check` — passed
 - `python manage.py check --deploy` — warnings only in development (expected)
 - `python manage.py migrate` — all migrations applied
-- `python manage.py collectstatic` — 130 files collected
+- `python manage.py collectstatic` — static files collected
 - `python manage.py runserver` — HTTP 200 on `/`
+- Vercel: production URL reachable with Deployment Protection disabled for public demos
 
 ---
 
 ## What was intentionally unchanged
 
-- All template views and demo data in `views.py` — UI works as before
 - Frontend assets (Tailwind CDN, Lucide, Chart.js)
-- No authentication wiring on login/register forms yet (models and admin are ready)
+- Hybrid content model (seed commands + staff lesson builder)
 
 ## Next recommended steps
 
-1. Wire `login_view` / `register_view` to Django auth
-2. Replace hardcoded dashboard data with `UserProfile` / `SkillProgress` queries
-3. Add `pytest-django` and view tests
-4. Add CI pipeline (lint, test, collectstatic check)
-5. Use PostgreSQL in production via `DATABASE_URL`
+1. ~~Add PostgreSQL on Vercel (`DATABASE_URL`) so accounts/progress persist~~ → see section B (Neon)
+2. Add CI: `manage.py check`, migrate dry-run, and a smoke HTTP check on `/`
+3. Document Speaking limits on serverless vs local Ollama/Vosk
+4. Optional custom domain in Vercel → Domains (not required for public demos)

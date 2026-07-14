@@ -1,0 +1,10 @@
+{% if using_ephemeral_database %}
+<div class="relative z-40 border-b border-warning/40 bg-warning/15 px-4 py-2.5 text-center text-sm text-foreground">
+  <strong class="font-semibold">Demo database is temporary.</strong>
+  Accounts can disappear when the server restarts.
+  Add a free
+  <a class="underline font-medium hover:text-primary" href="https://neon.tech" target="_blank" rel="noopener">Neon Postgres</a>
+  <code class="text-xs bg-secondary/60 px-1 rounded">DATABASE_URL</code>
+  in Vercel to keep users permanently. See <code class="text-xs bg-secondary/60 px-1 rounded">PRODUCTION.md</code>.
+</div>
+{% endif %}

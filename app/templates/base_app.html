@@ -5,6 +5,7 @@
     <title>{% block title %}Lisa{% endblock %}</title>
   </head>
   <body>
+    {% include "partials/ephemeral_db_banner.html" %}
     {% load static %}
     <div class="min-h-screen flex w-full bg-background relative">
       <div class="pointer-events-none fixed inset-0 bg-gradient-mesh opacity-60"></div>

@@ -5,6 +5,7 @@
     <title>{% block title %}Lisa{% endblock %}</title>
   </head>
   <body>
+    {% include "partials/ephemeral_db_banner.html" %}
     {% block body %}{% endblock %}
     {% block scripts %}{% endblock %}
     <script>if (window.lucide) lucide.createIcons();</script>

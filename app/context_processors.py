@@ -1,11 +1,20 @@
 import logging
 
+from django.conf import settings
 from django.db import DatabaseError, OperationalError
 
 from .levels_service import build_nav_skill_states
 from .user_helpers import build_app_user_context, get_logged_in_user
 
 logger = logging.getLogger(__name__)
+
+
+def deployment_flags(request):
+    """Expose hosting/database health flags to every template."""
+    return {
+        "using_ephemeral_database": bool(getattr(settings, "USING_EPHEMERAL_DATABASE", False)),
+        "using_postgres": bool(getattr(settings, "USING_POSTGRES", False)),
+    }
 
 
 def navigation(request):
