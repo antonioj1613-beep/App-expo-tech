@@ -32,7 +32,15 @@ from .stats_service import (
     weekly_accuracy_trend,
     weekly_xp_data,
 )
-from .user_helpers import build_app_user_context, ensure_profile, get_logged_in_user, is_new_user, time_greeting, user_initials
+from .user_helpers import (
+    build_app_user_context,
+    ensure_profile,
+    get_logged_in_user,
+    invalidate_stale_session,
+    is_new_user,
+    time_greeting,
+    user_initials,
+)
 
 
 def _auth_context(mode, **extra):
@@ -72,11 +80,27 @@ def landing(request):
     return render(request, "landing.html", {"about": about, "tools": tools, "features": features})
 
 
+def _ephemeral_db_warning():
+    if getattr(settings, "USING_EPHEMERAL_DATABASE", False):
+        return (
+            "This hosted demo uses a temporary database. Accounts can disappear "
+            "after the server restarts. Set DATABASE_URL (Postgres) in Vercel to keep data."
+        )
+    return None
+
+
 def login_view(request):
     if request.session.get("user_id"):
-        return redirect("dashboard")
+        # Stale cookie from an ephemeral DB wipe — clear it instead of bouncing forever.
+        if not get_logged_in_user(request):
+            invalidate_stale_session(request)
+        else:
+            return redirect("dashboard")
 
     ctx = _auth_context("login")
+    ephemeral = _ephemeral_db_warning()
+    if ephemeral:
+        ctx["form_warning"] = ephemeral
 
     if request.method == "POST":
         login = request.POST.get("login", "").strip()
@@ -100,9 +124,15 @@ def login_view(request):
 
 def register_view(request):
     if request.session.get("user_id"):
-        return redirect("dashboard")
+        if not get_logged_in_user(request):
+            invalidate_stale_session(request)
+        else:
+            return redirect("dashboard")
 
     ctx = _auth_context("register")
+    ephemeral = _ephemeral_db_warning()
+    if ephemeral:
+        ctx["form_warning"] = ephemeral
 
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
@@ -181,7 +211,6 @@ def database_browser(request):
 def dashboard(request):
     user = get_logged_in_user(request)
     if not user:
-        request.session.flush()
         return redirect("login")
 
     ensure_user_skill_progress(user)

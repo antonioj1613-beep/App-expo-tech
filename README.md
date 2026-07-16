@@ -102,4 +102,11 @@ Repositorio: [App-expo-tech](https://github.com/antonioj1613-beep/App-expo-tech)
 
 ## Despliegue
 
-Consulta `PRODUCTION.md` para producción.
+Consulta `PRODUCTION.md` para producción y la **Deployment checklist** (checks pre/post deploy, Vercel public access, and common failures).
+
+Checklist corta tras cada deploy:
+
+1. Production URL (sin hash) abre `/` con HTTP 200  
+2. Ventana de incógnito: **sin** login de Vercel  
+3. Register / Login / Levels / Reading submit funcionan  
+4. CSS estático carga (`/static/app/theme.css`)

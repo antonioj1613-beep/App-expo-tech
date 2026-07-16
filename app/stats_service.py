@@ -179,6 +179,30 @@ def record_speaking_session(
     return session
 
 
+def finalize_speaking_session(
+    session: SpeakingSession,
+    *,
+    duration_seconds: int,
+) -> SpeakingSession:
+    """Score and persist an in-progress SpeakingSession created at session start."""
+    stats = compute_speaking_session_stats(session.transcript)
+    session.accuracy_score = stats["accuracy_score"]
+    session.xp_earned = stats["xp_earned"]
+    session.duration_seconds = max(0, duration_seconds)
+    session.save(update_fields=["accuracy_score", "xp_earned", "duration_seconds"])
+
+    lessons = 1 if stats["user_turn_count"] > 0 else 0
+    record_practice_session(
+        session.user,
+        skill_slug="speaking",
+        xp_earned=stats["xp_earned"],
+        accuracy_score=stats["accuracy_score"],
+        duration_seconds=duration_seconds,
+        lessons_completed=lessons,
+    )
+    return session
+
+
 # ---------------------------------------------------------------------------
 # Vocabulary mastery (words_learned)
 # ---------------------------------------------------------------------------

@@ -99,6 +99,40 @@ Admission is included with a standard ticket. Members enter free. The exhibition
         "correct_index": 2,
         "level": 3,
     },
+    {
+        "title": "Community garden signup",
+        "passage": """Community Garden — Spring Registration
+
+Plots are available starting March 10 for residents of Oak Street and nearby blocks. Each plot costs $25 for the season and includes shared tool access and weekly watering on Tuesdays.
+
+New gardeners must attend a 30-minute orientation on March 8 at 6 p.m. in the community center. Sign up online or at the front desk by March 5.""",
+        "question_prompt": "What must new gardeners do before getting a plot?",
+        "options": [
+            "Pay $25 at the front desk only",
+            "Attend an orientation session",
+            "Live on Oak Street for one year",
+            "Bring their own gardening tools",
+        ],
+        "correct_index": 1,
+        "level": 4,
+    },
+    {
+        "title": "Fitness class schedule",
+        "passage": """Riverside Gym — April Class Update
+
+Beginning April 1, morning yoga moves to 7:00 a.m. on Mondays and Wednesdays. Evening spin classes remain at 6:30 p.m. on Tuesdays and Thursdays.
+
+Members can book classes through the mobile app up to 48 hours in advance. Non-members may join one trial class per month with prior registration.""",
+        "question_prompt": "How can members reserve a class?",
+        "options": [
+            "By calling the front desk only",
+            "Through the mobile app",
+            "By arriving 30 minutes early",
+            "By emailing the instructor directly",
+        ],
+        "correct_index": 1,
+        "level": 5,
+    },
 ]
 
 

@@ -26,6 +26,9 @@ python manage.py migrate --noinput | Out-Null
 Write-Step "Seeding lesson catalogs..."
 python manage.py seed_skills | Out-Null
 python manage.py seed_reading | Out-Null
+python manage.py seed_listening | Out-Null
+python manage.py seed_writing | Out-Null
+python manage.py seed_vocabulary_lessons | Out-Null
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Green

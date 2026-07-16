@@ -34,6 +34,7 @@
   let selectedCharacter = "Miles";
   let sessionActive = false;
   let sessionStartedAt = null;
+  let sessionId = null;
   let isBusy = false;
   let history = [];
   let voices = [];
@@ -304,7 +305,7 @@
       const data = await apiPost(chatUrl, {
         character: selectedCharacter,
         message: message,
-        history: JSON.stringify(history.slice(0, -1)),
+        session_id: sessionId,
       });
       const reply = data.reply;
       history.push({ role: "assistant", content: reply });
@@ -361,11 +362,13 @@
     setUi("starting");
     updateCharacterUi();
     history = [];
+    sessionId = null;
     conversationLog.innerHTML = "";
 
     try {
       await ensureMicrophone();
       const data = await apiPost(startUrl, { character: selectedCharacter });
+      sessionId = data.session_id;
       const question = data.question;
       history.push({ role: "assistant", content: question });
       addBubble("ai", question);
@@ -389,7 +392,7 @@
     const userTurns = history.filter(function (item) {
       return item.role === "user" && item.content;
     });
-    if (!userTurns.length || !endUrl) return;
+    if (!userTurns.length || !endUrl || !sessionId) return;
 
     const durationSeconds = sessionStartedAt
       ? Math.round((Date.now() - sessionStartedAt) / 1000)
@@ -398,7 +401,7 @@
     try {
       const data = await apiPost(endUrl, {
         character: selectedCharacter,
-        history: JSON.stringify(history),
+        session_id: sessionId,
         duration_seconds: durationSeconds,
       });
       if (window.applyLearnerStats) {
@@ -433,6 +436,7 @@
     if (hadSession) {
       saveSession();
     }
+    sessionId = null;
     sessionStartedAt = null;
   }
 

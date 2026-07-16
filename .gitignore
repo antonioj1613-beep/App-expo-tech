@@ -35,3 +35,6 @@ build/
 # Local speech model (downloaded on first use)
 data/
 vosk-model*/
+
+.vercel
+.env*
