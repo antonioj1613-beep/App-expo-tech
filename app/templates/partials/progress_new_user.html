@@ -4,7 +4,7 @@
     <div class="md:col-span-2">
       <span class="inline-flex bg-primary/15 text-primary text-xs px-2.5 py-1 rounded-full mb-3">Overall</span>
       <h2 class="font-display text-3xl font-bold tracking-tight">
-        Level {{ overall_level }} · <span class="text-gradient">{{ overall_label }}</span>
+        Overall level: <span class="text-gradient">{{ overall_level }}</span>
       </h2>
       <p class="text-sm text-muted-foreground mt-2">Complete your first lesson to start tracking progress.</p>
       <div class="h-2.5 rounded-full bg-secondary overflow-hidden mt-4 max-w-md">
@@ -34,7 +34,7 @@
         </div>
         <div>
           <h3 class="font-semibold">{{ s.n }}</h3>
-          <p class="text-xs text-muted-foreground">Level {{ s.lv }} · {{ s.status|default:"Not started" }}</p>
+          <p class="text-xs text-muted-foreground">{{ s.lv }} · {{ s.status|default:"Not started" }}</p>
         </div>
       </div>
       <span class="text-2xl font-bold text-muted-foreground/60">{{ s.p }}%</span>

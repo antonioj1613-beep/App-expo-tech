@@ -212,6 +212,12 @@ SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 X_FRAME_OPTIONS = "DENY"
 
+# Sliding session: any request resets the 2-day expiry, so daily use keeps you
+# signed in indefinitely, but 2 days with no activity forces a fresh login.
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 2
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

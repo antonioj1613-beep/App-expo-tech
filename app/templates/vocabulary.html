@@ -1,4 +1,5 @@
 {% extends "base_app.html" %}
+{% load static %}
 {% block title %}Vocabulary — Learning Skills{% endblock %}
 {% block main %}
 {% include "partials/header.html" with title="Vocabulary" subtitle=skill.subtitle %}
@@ -14,12 +15,22 @@
 
   {% if page_state.coming_soon %}
   {% include "partials/skill_coming_soon.html" with icon="graduation-cap" active="vocabulary" %}
+  {% elif page_state.all_caught_up %}
+  <div class="max-w-2xl mx-auto glass rounded-2xl p-8 text-center">
+    <div class="h-14 w-14 rounded-2xl bg-success/15 text-success grid place-items-center mx-auto mb-4">
+      <i data-lucide="check" class="h-7 w-7"></i>
+    </div>
+    <h2 class="font-display text-xl font-bold">All caught up!</h2>
+    <p class="text-sm text-muted-foreground mt-2">
+      No words due for review right now. Check back later — spaced repetition schedules each word for you automatically.
+    </p>
+  </div>
   {% else %}
   <div class="max-w-2xl mx-auto">
-    <div class="bg-card rounded-2xl border border-border p-6 hover:shadow-glow transition-all hover:border-primary/40">
+    <div id="vocabCard" class="bg-card rounded-2xl border border-border p-6 hover:shadow-glow transition-all hover:border-primary/40">
       <div class="flex items-start justify-between mb-2">
         <div>
-          <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-1">{{ question_label }}</p>
+          <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-1">Vocabulary review</p>
           <h3 class="font-display text-2xl font-bold tracking-tight">{{ vocab_word }}</h3>
           {% if vocab_ipa %}<p class="text-xs text-muted-foreground font-mono mt-0.5">{{ vocab_ipa }}</p>{% endif %}
         </div>
@@ -31,12 +42,29 @@
       {% if vocab_example %}
       <p class="text-xs italic text-muted-foreground mt-3 leading-relaxed">"{{ vocab_example }}"</p>
       {% endif %}
+      <p id="vocabFeedback" class="hidden mt-4 text-sm rounded-xl p-3 border"></p>
       <div class="mt-5 flex items-center gap-2">
         <button type="button" class="btn btn-glass btn-sm"><i data-lucide="volume-2" class="h-3.5 w-3.5"></i> Listen</button>
-        <button type="button" class="btn btn-hero btn-sm ml-auto" disabled>Mark learned</button>
+        <div class="ml-auto flex gap-2">
+          <button id="vocabStillLearningBtn" type="button" class="btn btn-glass btn-sm">Still learning</button>
+          <button id="vocabGotItBtn" type="button" class="btn btn-hero btn-sm">Got it</button>
+        </div>
       </div>
     </div>
   </div>
+
+  <div
+    id="vocab-config"
+    class="hidden"
+    data-lesson-id="{{ lesson_id }}"
+    data-submit-url="{% url 'vocabulary_submit' %}"
+    data-csrf-token="{{ csrf_token }}"
+  ></div>
   {% endif %}
 </main>
+{% endblock %}
+{% block scripts %}
+{% if page_state and not page_state.coming_soon and not page_state.all_caught_up %}
+<script src="{% static 'app/vocabulary.js' %}"></script>
+{% endif %}
 {% endblock %}

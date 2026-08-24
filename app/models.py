@@ -3,6 +3,8 @@ from decimal import Decimal
 from django.db import models
 from django.utils import timezone
 
+from .gamification import CEFR_LEVELS, ERROR_CATEGORIES, SM2_INITIAL_EASE_FACTOR
+
 
 class User(models.Model):
     """App user account stored in the `users` table."""
@@ -41,6 +43,8 @@ class UserProfile(models.Model):
     )
     words_learned = models.PositiveIntegerField(default=0)
     last_active_date = models.DateField(null=True, blank=True)
+    streak_freezes = models.PositiveSmallIntegerField(default=0)
+    last_freeze_consumed_at = models.DateTimeField(null=True, blank=True)
     native_language = models.CharField(max_length=50, default="English")
     app_language = models.CharField(max_length=50, default="English")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -81,7 +85,16 @@ class UserSkillProgress(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="skill_progress")
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name="user_progress")
-    level = models.PositiveSmallIntegerField(default=1)
+    # CEFR proficiency sub-level for this skill, computed from a rolling
+    # accuracy window (see gamification.recompute_cefr_level) — not derived
+    # from lesson-count/XP. None means "not yet assessed" (too little
+    # graded history), not "beginner" — see stats_service for the fallback.
+    cefr_level = models.CharField(
+        max_length=2,
+        choices=[(lvl, lvl) for lvl in CEFR_LEVELS],
+        null=True,
+        blank=True,
+    )
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
@@ -95,10 +108,12 @@ class UserSkillProgress(models.Model):
         unique_together = [["user", "skill"]]
 
     def __str__(self):
-        return f"{self.user.username} — {self.skill.name} (Lv {self.level})"
+        label = self.cefr_level or "unassessed"
+        return f"{self.user.username} — {self.skill.name} ({label})"
 
     @property
     def progress_percent(self) -> int:
+        """Catalog completion % — independent of CEFR proficiency assessment."""
         total = self.skill.total_lessons
         if total <= 0:
             return 0
@@ -108,18 +123,16 @@ class UserSkillProgress(models.Model):
     def status_label(self) -> str:
         return self.Status(self.status).label
 
-    def sync_status_and_level(self, max_level: int = 15) -> None:
-        percent = self.progress_percent
+    def sync_status(self) -> None:
+        """Catalog-completion status only. CEFR level is recomputed
+        separately — see stats_service.recompute_skill_cefr_level(), called
+        after each graded interaction, not on every lesson-count change."""
         if self.lessons_completed <= 0:
             self.status = self.Status.NOT_STARTED
-            self.level = 1
-        elif percent >= 100:
+        elif self.progress_percent >= 100:
             self.status = self.Status.COMPLETED
-            self.level = max_level
         else:
             self.status = self.Status.IN_PROGRESS
-            lessons_per_level = max(1, self.skill.total_lessons // max_level)
-            self.level = min(max_level, max(1, self.lessons_completed // lessons_per_level + 1))
 
 
 class SpeakingSession(models.Model):
@@ -170,6 +183,11 @@ class PracticeSession(models.Model):
         null=True,
         blank=True,
     )
+    # Snapshot of the SkillLesson.level (1-15) this interaction was attempted
+    # at, for CEFR band matching. Null for Speaking (no discrete lesson
+    # ladder) and for rows predating CEFR sub-leveling — those are expected,
+    # not missing data; see gamification.recompute_cefr_level.
+    lesson_level = models.PositiveSmallIntegerField(null=True, blank=True)
     duration_seconds = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -182,46 +200,6 @@ class PracticeSession(models.Model):
 
     def __str__(self):
         return f"{self.user.username} · {self.skill.slug} · {self.xp_earned} XP"
-
-
-class VocabularyWord(models.Model):
-    """Reference vocabulary item — content seeded via management command."""
-
-    word = models.CharField(max_length=80)
-    slug = models.SlugField(max_length=80, unique=True)
-    ipa = models.CharField(max_length=80, blank=True)
-    meaning = models.TextField()
-    example = models.TextField(blank=True)
-    level = models.CharField(max_length=4, default="B2")
-    sort_order = models.PositiveIntegerField(default=0)
-
-    class Meta:
-        ordering = ["sort_order", "word"]
-
-    def __str__(self):
-        return self.word
-
-
-class UserVocabularyMastery(models.Model):
-    """Per-user mastery for a vocabulary word (words_learned when mastered)."""
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="vocabulary_mastery")
-    word = models.ForeignKey(VocabularyWord, on_delete=models.CASCADE, related_name="user_mastery")
-    correct_count = models.PositiveSmallIntegerField(default=0)
-    mastered_at = models.DateTimeField(null=True, blank=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = [["user", "word"]]
-        ordering = ["-updated_at"]
-
-    def __str__(self):
-        status = "mastered" if self.mastered_at else f"{self.correct_count} correct"
-        return f"{self.user.username} · {self.word.word} ({status})"
-
-    @property
-    def is_mastered(self) -> bool:
-        return self.mastered_at is not None
 
 
 class ReadingLesson(models.Model):
@@ -314,6 +292,40 @@ class UserSkillLessonCompletion(models.Model):
         return f"{self.user.username} · {self.lesson}"
 
 
+class UserVocabularyReviewState(models.Model):
+    """
+    SM-2 spaced-repetition state for one (user, vocabulary lesson) pair.
+
+    `lesson` is a SkillLesson with skill.slug == "vocabulary" — content
+    lives in the same staff-managed catalog as every other skill (Phase 2
+    deliberately extends SkillLesson with review state rather than reviving
+    the old standalone VocabularyWord model). Scoping to vocabulary lessons
+    is enforced in the view layer, not a DB constraint.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="vocabulary_review_states")
+    lesson = models.ForeignKey(SkillLesson, on_delete=models.CASCADE, related_name="review_states")
+    ease_factor = models.DecimalField(max_digits=3, decimal_places=2, default=SM2_INITIAL_EASE_FACTOR)
+    interval_days = models.PositiveIntegerField(default=0)
+    repetition_count = models.PositiveIntegerField(default=0)
+    next_review_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Null means due immediately (never reviewed yet).",
+    )
+    last_reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [["user", "lesson"]]
+        ordering = ["next_review_date"]
+
+    def __str__(self):
+        due = self.next_review_date.isoformat() if self.next_review_date else "new"
+        return f"{self.user.username} · {self.lesson.vocab_word} (due {due})"
+
+
 class UserReadingLessonCompletion(models.Model):
     """Tracks first completion of a reading lesson (prevents duplicate XP)."""
 
@@ -329,3 +341,40 @@ class UserReadingLessonCompletion(models.Model):
 
     def __str__(self):
         return f"{self.user.username} · {self.lesson.slug}"
+
+
+class TutorErrorPattern(models.Model):
+    """
+    Persistent, summarized recurring-error tracking per (user, skill) —
+    Phase 3. Deliberately not raw transcript storage: `category` is a
+    bounded taxonomy key (see gamification.ERROR_CATEGORIES) so a mistake
+    detected across many sessions reinforces one row via get_or_create,
+    never creates near-duplicate rows for re-phrased descriptions of the
+    same underlying pattern. `skill` is general (not Speaking-specific) so
+    another skill's tutor could plug into this same table later without a
+    schema change — only the extraction trigger is Speaking-only today.
+    """
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="error_patterns")
+    skill = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name="error_patterns")
+    category = models.CharField(max_length=40, choices=ERROR_CATEGORIES)
+    example_note = models.TextField(
+        blank=True,
+        help_text="Latest illustrative snippet — overwritten on each reinforcement, not appended.",
+    )
+    occurrence_count = models.PositiveIntegerField(default=1)
+    first_detected_at = models.DateTimeField(auto_now_add=True)
+    last_detected_at = models.DateTimeField(auto_now=True)
+    resolved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Manually cleared (e.g. via admin) when a staff member judges this fixed. "
+        "Reactivated automatically if the pattern is detected again.",
+    )
+
+    class Meta:
+        unique_together = [["user", "skill", "category"]]
+        ordering = ["-occurrence_count", "-last_detected_at"]
+
+    def __str__(self):
+        return f"{self.user.username} · {self.skill.slug} · {self.get_category_display()} ({self.occurrence_count}x)"

@@ -48,15 +48,9 @@
       xpTotal.textContent = formatNumber(app.total_xp != null ? app.total_xp : profile.total_xp) + " XP earned";
     }
 
-    const xpBar = document.getElementById("sidebarXpBar");
-    if (xpBar) {
-      xpBar.style.width = String(app.xp_progress_percent || 0) + "%";
-    }
-
-    const xpDetail = document.getElementById("sidebarXpDetail");
-    if (xpDetail && app.xp_for_next_level) {
-      xpDetail.textContent =
-        formatNumber(app.xp_into_level || 0) + " / " + formatNumber(app.xp_for_next_level) + " XP to level " + (app.level + 1);
+    const overallLevel = document.getElementById("sidebarOverallLevel");
+    if (overallLevel && app.level_label) {
+      overallLevel.textContent = "Overall level: " + app.level_label;
     }
 
     const streak = document.getElementById("sidebarStreakDays");
@@ -68,7 +62,7 @@
     const speakingMeta = document.getElementById("speakingSkillMeta");
     if (speakingMeta && skill.lessons_label) {
       speakingMeta.textContent =
-        "Level " + skill.level + " · " + skill.lessons_label + " lessons · " + skill.progress_percent + "%";
+        (skill.level || "Unassessed") + " · " + skill.lessons_label + " lessons · " + skill.progress_percent + "%";
     }
 
     const pageHeader = document.getElementById("pageSubtitle");

@@ -10,25 +10,26 @@ from django.db.models import Avg, Sum
 from django.utils import timezone
 
 from .gamification import (
+    CEFR_ROLLING_WINDOW,
     DAILY_LESSON_GOAL,
-    VOCABULARY_MASTERY_CORRECT_THRESHOLD,
-    XP_PER_GLOBAL_LEVEL,
-    compute_global_level,
+    STREAK_FREEZE_EARN_INTERVAL_DAYS,
+    STREAK_FREEZE_MAX_STORED,
+    VOCABULARY_MASTERY_REPETITIONS,
     compute_speaking_session_xp,
+    derive_overall_cefr_level,
     estimate_speaking_turn_accuracy,
-    global_level_label,
-    global_level_progress_percent,
+    recompute_cefr_level,
 )
 from .models import (
     PracticeSession,
     Skill,
+    SkillLesson,
     SpeakingSession,
     STAFF_SKILL_SLUGS,
     User,
     UserProfile,
     UserSkillProgress,
-    UserVocabularyMastery,
-    VocabularyWord,
+    UserVocabularyReviewState,
 )
 from .user_helpers import ensure_profile
 
@@ -55,6 +56,11 @@ PIE_CHART_COLORS = [
     "rgb(0 198 213)",
     "rgb(0 199 105)",
 ]
+
+
+def cefr_display(level: str | None) -> str:
+    """Human-facing text for a CEFR level that may be unassessed."""
+    return level or "Unassessed"
 
 
 # ---------------------------------------------------------------------------
@@ -118,8 +124,39 @@ def _increment_skill_lessons(user: User, skill_slug: str, count: int = 1) -> Non
         defaults={"status": UserSkillProgress.Status.NOT_STARTED},
     )
     progress.lessons_completed += count
-    progress.sync_status_and_level()
-    progress.save(update_fields=["lessons_completed", "status", "level", "last_updated"])
+    progress.sync_status()
+    progress.save(update_fields=["lessons_completed", "status", "last_updated"])
+
+
+def recompute_skill_cefr_level(user: User, skill_slug: str) -> str | None:
+    """Recompute a skill's CEFR level from its rolling accuracy window.
+    Called after every graded interaction — see record_practice_session."""
+    skill = Skill.objects.filter(slug=skill_slug).first()
+    if not skill:
+        return None
+
+    progress, _ = UserSkillProgress.objects.get_or_create(
+        user=user,
+        skill=skill,
+        defaults={"status": UserSkillProgress.Status.NOT_STARTED},
+    )
+    qs = (
+        PracticeSession.objects.filter(user=user, skill=skill, accuracy_score__isnull=False)
+        .order_by("-created_at")
+        .values_list("accuracy_score", "lesson_level")
+    )
+    total_count = qs.count()
+    rolling_pairs = [(float(accuracy), lesson_level) for accuracy, lesson_level in qs[:CEFR_ROLLING_WINDOW]]
+
+    new_level = recompute_cefr_level(
+        rolling_pairs,
+        total_interaction_count=total_count,
+        current_level=progress.cefr_level,
+    )
+    if new_level != progress.cefr_level:
+        progress.cefr_level = new_level
+        progress.save(update_fields=["cefr_level", "last_updated"])
+    return new_level
 
 
 def record_practice_session(
@@ -130,6 +167,7 @@ def record_practice_session(
     accuracy_score: Decimal | float | None = None,
     duration_seconds: int = 0,
     lessons_completed: int = 0,
+    lesson_level: int | None = None,
 ) -> PracticeSession:
     skill = Skill.objects.filter(slug=skill_slug).first()
     if not skill:
@@ -141,10 +179,14 @@ def record_practice_session(
         xp_earned=max(0, xp_earned),
         accuracy_score=accuracy_score,
         duration_seconds=max(0, duration_seconds),
+        lesson_level=lesson_level,
     )
 
     if lessons_completed > 0:
         _increment_skill_lessons(user, skill_slug, lessons_completed)
+
+    if accuracy_score is not None:
+        recompute_skill_cefr_level(user, skill_slug)
 
     refresh_profile_stats(user)
     return session
@@ -204,32 +246,18 @@ def finalize_speaking_session(
 
 
 # ---------------------------------------------------------------------------
-# Vocabulary mastery (words_learned)
+# Vocabulary mastery (words_learned) — Phase 2, SM-2 spaced repetition.
+# Review scheduling itself lives in vocabulary_service.py; this is just the
+# words_learned/profile-stat bookkeeping, same role it always had.
 # ---------------------------------------------------------------------------
 
 
-def record_vocabulary_answer(user: User, word: VocabularyWord, *, correct: bool) -> UserVocabularyMastery:
-    """
-    Record a vocabulary quiz answer. Mastery after VOCABULARY_MASTERY_CORRECT_THRESHOLD
-    consecutive-style correct answers (incrementing correct_count).
-    """
-    mastery, _ = UserVocabularyMastery.objects.get_or_create(user=user, word=word)
-    if correct:
-        mastery.correct_count += 1
-        if mastery.correct_count >= VOCABULARY_MASTERY_CORRECT_THRESHOLD and not mastery.mastered_at:
-            mastery.mastered_at = timezone.now()
-    else:
-        mastery.correct_count = max(0, mastery.correct_count - 1)
-        if mastery.correct_count < VOCABULARY_MASTERY_CORRECT_THRESHOLD:
-            mastery.mastered_at = None
-
-    mastery.save(update_fields=["correct_count", "mastered_at", "updated_at"])
-    sync_words_learned(user)
-    return mastery
-
-
 def sync_words_learned(user: User) -> int:
-    count = UserVocabularyMastery.objects.filter(user=user, mastered_at__isnull=False).count()
+    """A word counts toward words_learned once it's survived
+    VOCABULARY_MASTERY_REPETITIONS successful SM-2 repetitions in a row."""
+    count = UserVocabularyReviewState.objects.filter(
+        user=user, repetition_count__gte=VOCABULARY_MASTERY_REPETITIONS
+    ).count()
     profile = ensure_profile(user)
     if profile.words_learned != count:
         profile.words_learned = count
@@ -241,12 +269,12 @@ def vocabulary_stats_for_user(user: User) -> dict:
     sync_words_learned(user)
     profile = ensure_profile(user)
     mastered = profile.words_learned
-    total_words = VocabularyWord.objects.count()
-    review_due = UserVocabularyMastery.objects.filter(
-        user=user,
-        mastered_at__isnull=True,
-        correct_count__gt=0,
-        correct_count__lt=VOCABULARY_MASTERY_CORRECT_THRESHOLD,
+    total_words = SkillLesson.objects.filter(skill__slug="vocabulary", is_published=True).count()
+    # Due includes mastered words too — SM-2 keeps scheduling reviews
+    # indefinitely (with a growing interval), mastery is a display
+    # milestone, not an exit from the review cycle.
+    review_due = UserVocabularyReviewState.objects.filter(
+        user=user, next_review_date__lte=timezone.localdate()
     ).count()
     return {
         "learned": mastered,
@@ -290,6 +318,8 @@ def refresh_profile_stats(user: User) -> UserProfile:
             "study_hours",
             "last_active_date",
             "streak_days",
+            "streak_freezes",
+            "last_freeze_consumed_at",
             "words_learned",
             "updated_at",
         ]
@@ -298,16 +328,37 @@ def refresh_profile_stats(user: User) -> UserProfile:
 
 
 def _update_streak(profile: UserProfile, today) -> None:
+    """
+    Evaluated lazily, in-request, at the same point streak_days has always
+    been updated — this app has no scheduler, so a missed day is only ever
+    detected the next time the user is actually active again.
+
+    A freeze only ever covers a gap of exactly one missed day (gap == 2).
+    Freezes deliberately do NOT stack for longer gaps: with no way to warn a
+    user mid-absence, silently burning the whole freeze bank on one long
+    disappearance would spend it with no chance for the user to have made a
+    different call. A 2+ day gap always hard-resets, freezes untouched.
+    """
     last = profile.last_active_date
     if last is None:
         profile.streak_days = max(1, profile.streak_days or 1)
         return
     if last == today:
         return
-    if (today - last).days == 1:
+
+    gap = (today - last).days
+    if gap == 1:
         profile.streak_days += 1
+    elif gap == 2 and profile.streak_freezes > 0:
+        profile.streak_freezes -= 1
+        profile.streak_days += 1
+        profile.last_freeze_consumed_at = timezone.now()
     else:
         profile.streak_days = 1
+        return  # a reset never earns a freeze in the same tick
+
+    if profile.streak_days % STREAK_FREEZE_EARN_INTERVAL_DAYS == 0:
+        profile.streak_freezes = min(STREAK_FREEZE_MAX_STORED, profile.streak_freezes + 1)
 
 
 # ---------------------------------------------------------------------------
@@ -511,6 +562,23 @@ def build_recent_achievements(user: User, limit: int = 3) -> list[dict]:
             }
         )
 
+    if profile.last_freeze_consumed_at:
+        when = _relative_time(profile.last_freeze_consumed_at)
+        # Bounded to the same "still fresh" window the notifications feed
+        # already uses for the "new" badge (see is_recent in
+        # build_notification_items) — a past event, not an ongoing status
+        # like the streak/XP rows above, so it must stop being synthesized
+        # once it's no longer recent, not persist forever.
+        if when == "Just now" or when.endswith("h ago") or when == "Yesterday":
+            achievements.append(
+                {
+                    "icon": "snowflake",
+                    "t": "Streak freeze used — your streak was saved",
+                    "d": when,
+                    "c": "text-accent bg-accent/15",
+                }
+            )
+
     if profile.total_xp >= 1000:
         achievements.append(
             {
@@ -591,13 +659,19 @@ def profile_stats_cards(profile: UserProfile) -> list[dict]:
 
 
 def build_app_user_stats(user: User) -> dict:
-    """Sidebar / header learner widget — single source for global level & XP."""
+    """Sidebar / header learner widget — single source for the derived
+    overall CEFR level and XP. Level is now the median of assessed per-skill
+    CEFR levels (see gamification.derive_overall_cefr_level), display-only —
+    it does not drive anything (Speaking's tutor difficulty reads its own
+    skill-level CEFR directly, not this derived value). XP/streak are their
+    own independent stats and no longer imply a level."""
     from .user_helpers import is_new_user, user_initials
 
     profile = ensure_profile(user)
     new_user = is_new_user(user)
     total_xp = profile.total_xp
-    level = 1 if new_user else compute_global_level(total_xp)
+    skill_levels = list(UserSkillProgress.objects.filter(user=user).values_list("cefr_level", flat=True))
+    overall_level = None if new_user else derive_overall_cefr_level(skill_levels)
 
     return {
         "username": user.username,
@@ -605,13 +679,11 @@ def build_app_user_stats(user: User) -> dict:
         "initials": user_initials(user.username),
         "is_new": new_user,
         "streak_days": profile.streak_days,
+        "streak_freezes": profile.streak_freezes,
         "total_xp": total_xp,
         "total_xp_display": format_number(total_xp),
-        "level": level,
-        "level_label": "New learner" if new_user else global_level_label(level),
-        "xp_progress_percent": 0 if new_user else global_level_progress_percent(total_xp),
-        "xp_into_level": 0 if new_user else total_xp % XP_PER_GLOBAL_LEVEL,
-        "xp_for_next_level": XP_PER_GLOBAL_LEVEL,
+        "level": overall_level,
+        "level_label": "New learner" if new_user else cefr_display(overall_level),
     }
 
 
@@ -662,13 +734,17 @@ def build_dashboard_returning_context(user: User, *, first_name: str) -> dict:
     week_data = weekly_xp_data(user)
     daily_goal = build_daily_goal_context(user)
 
+    skills = build_skills_dashboard_list(user)
+    for s in skills:
+        s["level"] = cefr_display(s["level"])
+
     return {
         "active": "dashboard",
         "is_new_user": False,
         "page_title": "Dashboard",
         "page_subtitle": f"Welcome back, {first_name} — let's keep the streak alive 🔥",
         "stats": profile_stats_cards(profile),
-        "skills": build_skills_dashboard_list(user),
+        "skills": skills,
         "week_xp_total": sum(week_data),
         "week_data": week_data,
         "week_labels": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
@@ -762,12 +838,12 @@ def build_skill_context(user: User, slug: str) -> dict:
         elif page_state["next_lesson"]:
             subtitle = f"Level {page_state['next_lesson'].level} · In progress"
         elif progress:
-            subtitle = f"Level {progress.level} · {progress.status_label}"
+            subtitle = f"{cefr_display(progress.cefr_level)} · {progress.status_label}"
         else:
             subtitle = "Not started"
 
         return {
-            "level": progress.level if progress else 1,
+            "level": progress.cefr_level if progress else None,
             "status": progress.status_label if progress else "Not started",
             "progress_percent": progress_percent,
             "lessons_completed": completed,
@@ -786,26 +862,26 @@ def build_skill_context(user: User, slug: str) -> dict:
         seed = next((s for s in SKILL_SEED_DATA if s["slug"] == slug), None)
         total = seed["total_lessons"] if seed else 0
         return {
-            "level": 1,
+            "level": None,
             "status": "Not started",
             "progress_percent": 0,
             "lessons_completed": 0,
             "total_lessons": total,
             "lessons_label": f"0 / {total}",
-            "subtitle": "Level 1 · Not started",
+            "subtitle": "Unassessed · Not started",
             **meta,
         }
 
     skill = progress.skill
     status = progress.status_label
     return {
-        "level": progress.level,
+        "level": progress.cefr_level,
         "status": status,
         "progress_percent": progress.progress_percent,
         "lessons_completed": progress.lessons_completed,
         "total_lessons": skill.total_lessons,
         "lessons_label": f"{progress.lessons_completed} / {skill.total_lessons}",
-        "subtitle": f"Level {progress.level} · {status}",
+        "subtitle": f"{cefr_display(progress.cefr_level)} · {status}",
         **meta,
     }
 
@@ -833,7 +909,7 @@ def build_skills_dashboard_list(user: User) -> list[dict]:
                 "url": meta.get("url", slug),
                 "icon": meta.get("icon", "layers"),
                 "progress": progress_pct,
-                "level": progress.level,
+                "level": progress.cefr_level,
                 "status": progress.status_label,
                 "lessons_label": lessons_label,
                 "has_lessons": has_published_lessons(slug) if slug in STAFF_SKILL_SLUGS else True,
@@ -845,6 +921,9 @@ def build_skills_dashboard_list(user: User) -> list[dict]:
 
 
 def build_progress_skills_list(user: User) -> list[dict]:
+    """`lv` is the raw CEFR level (or None) — callers needing display text
+    should use stats_service.cefr_display(), e.g. for the overall-level
+    median calc in views.progress() vs. per-skill row rendering."""
     return [
         {
             "icon": s["icon"],

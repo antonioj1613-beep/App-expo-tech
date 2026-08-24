@@ -27,6 +27,8 @@ def sync_skill_lesson_count(sender, instance, **kwargs):
         skill.save(update_fields=["total_lessons"])
 
     for progress in UserSkillProgress.objects.filter(skill=skill):
-        progress.sync_status_and_level()
-        progress.save(update_fields=["status", "level"])
+        # Staff editing the lesson catalog changes total_lessons/status only —
+        # it isn't a graded interaction, so CEFR level is untouched here.
+        progress.sync_status()
+        progress.save(update_fields=["status"])
 

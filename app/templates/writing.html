@@ -1,4 +1,5 @@
 {% extends "base_app.html" %}
+{% load static %}
 {% block title %}Writing — Learning Skills{% endblock %}
 {% block main %}
 {% include "partials/header.html" with title="Writing Part" subtitle=skill.subtitle %}
@@ -13,7 +14,7 @@
           <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-2">{{ question_label }}</p>
           <h2 class="font-display text-lg font-semibold leading-snug">{{ writing_prompt }}</h2>
         </div>
-        <textarea id="essay" oninput="countWords()" placeholder="Start writing here…" class="field min-h-[320px] text-[15px]"></textarea>
+        <textarea id="essay" placeholder="Start writing here…" class="field min-h-[320px] text-[15px]"></textarea>
         <div class="flex items-center justify-between">
           <span class="text-xs text-muted-foreground">
             <span id="wc">0</span>
@@ -21,10 +22,12 @@
             {% if min_words %}(min {{ min_words }}){% endif %}
           </span>
           <div class="flex gap-2">
-            <button type="button" class="btn btn-glass btn-sm"><i data-lucide="wand-2" class="h-3.5 w-3.5"></i> AI hint</button>
-            <button type="button" class="btn btn-hero btn-sm" disabled>Submit</button>
+            <button type="button" class="btn btn-glass btn-sm opacity-60 cursor-not-allowed" disabled title="Coming soon"><i data-lucide="wand-2" class="h-3.5 w-3.5"></i> AI hint</button>
+            <button id="writingSubmitBtn" type="button" class="btn btn-hero btn-sm" disabled>Submit</button>
           </div>
         </div>
+        <p id="writingFeedback" class="hidden mt-4 text-sm rounded-xl p-3 border"></p>
+        <a id="writingNextBtn" href="{% url 'writing' %}" class="btn btn-glass btn-lg w-full mt-3 hidden">Next lesson <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
       </div>
     </div>
 
@@ -32,22 +35,26 @@
       <div class="p-6">
         <div class="flex items-center gap-2 mb-4">
           <div class="h-8 w-8 rounded-lg bg-gradient-primary grid place-items-center shadow-glow"><i data-lucide="sparkles" class="h-4 w-4 text-primary-foreground"></i></div>
-          <h3 class="font-semibold">AI feedback</h3>
+          <h3 class="font-semibold">Feedback</h3>
         </div>
-        <p class="text-sm text-muted-foreground">Submit your writing to receive AI feedback on grammar, clarity, and tone.</p>
+        <p id="aiFeedbackText" class="text-sm text-muted-foreground">Submit your writing to see how you did. Full AI feedback on grammar, clarity, and tone is coming soon.</p>
       </div>
     </div>
   </div>
+
+  <div
+    id="writing-config"
+    class="hidden"
+    data-lesson-id="{{ lesson_id }}"
+    data-submit-url="{% url 'writing_submit' %}"
+    data-csrf-token="{{ csrf_token }}"
+    data-already-completed="{% if already_completed %}1{% else %}0{% endif %}"
+  ></div>
   {% endif %}
 </main>
 {% endblock %}
 {% block scripts %}
 {% if page_state and not page_state.coming_soon %}
-<script>
-  function countWords() {
-    const v = document.getElementById("essay").value.trim();
-    document.getElementById("wc").textContent = v ? v.split(/\s+/).length : 0;
-  }
-</script>
+<script src="{% static 'app/writing.js' %}"></script>
 {% endif %}
 {% endblock %}

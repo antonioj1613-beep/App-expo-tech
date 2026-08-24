@@ -14,16 +14,39 @@
     <button onclick="toggleTheme()" class="btn btn-ghost btn-icon rounded-full">
       <i data-lucide="sun-moon" class="h-[18px] w-[18px]"></i>
     </button>
-    <button class="btn btn-ghost btn-icon rounded-full relative">
+    <a href="{% url 'notifications' %}" class="btn btn-ghost btn-icon rounded-full relative" title="Notifications">
       <i data-lucide="bell" class="h-[18px] w-[18px]"></i>
       <span class="absolute top-2 right-2 h-2 w-2 rounded-full bg-gradient-primary shadow-glow"></span>
-    </button>
-    <a href="{% url 'profile' %}" class="h-9 w-9 rounded-full bg-gradient-primary grid place-items-center text-primary-foreground text-xs font-semibold ring-2 ring-primary/30" title="Profile">{% if app_user %}{{ app_user.initials }}{% else %}?{% endif %}</a>
+    </a>
+    <div id="userMenuWrap" class="relative">
+      <button
+        type="button"
+        id="userMenuBtn"
+        onclick="event.stopPropagation(); document.getElementById('userMenu').classList.toggle('hidden');"
+        class="h-9 w-9 rounded-full bg-gradient-primary grid place-items-center text-primary-foreground text-xs font-semibold ring-2 ring-primary/30"
+        title="Account"
+      >{% if app_user %}{{ app_user.initials }}{% else %}?{% endif %}</button>
+      <div id="userMenu" class="hidden absolute right-0 top-full mt-2 w-52 glass rounded-2xl p-1.5 shadow-elegant z-50">
+        <a href="{% url 'profile' %}" class="nav-link"><i data-lucide="user" class="h-[18px] w-[18px]"></i><span>Profile</span></a>
+        <a href="{% url 'notifications' %}" class="nav-link"><i data-lucide="bell" class="h-[18px] w-[18px]"></i><span>Notifications</span></a>
+        <a href="{% url 'settings' %}" class="nav-link"><i data-lucide="settings" class="h-[18px] w-[18px]"></i><span>Settings</span></a>
+        <a href="{% url 'premium' %}" class="nav-link"><i data-lucide="crown" class="h-[18px] w-[18px]"></i><span>Premium</span></a>
+      </div>
+    </div>
     <a href="{% url 'logout' %}" class="btn btn-ghost btn-icon rounded-full text-muted-foreground hover:text-destructive" title="Log out">
       <i data-lucide="log-out" class="h-[18px] w-[18px]"></i>
     </a>
   </div>
 </header>
+<script>
+  document.addEventListener("click", function (event) {
+    const menu = document.getElementById("userMenu");
+    const wrap = document.getElementById("userMenuWrap");
+    if (menu && !menu.classList.contains("hidden") && wrap && !wrap.contains(event.target)) {
+      menu.classList.add("hidden");
+    }
+  });
+</script>
 {% if messages %}
 <div class="app-divider-b bg-background/90 px-4 md:px-8 py-3">
   {% include "partials/form_messages.html" %}

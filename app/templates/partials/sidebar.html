@@ -1,6 +1,6 @@
 <aside
   id="sidebar"
-  class="relative z-20 w-64 shrink-0 flex flex-col bg-sidebar app-divider-r transition-all duration-300"
+  class="sticky top-0 self-start z-20 h-screen w-64 shrink-0 flex flex-col bg-sidebar app-divider-r transition-all duration-300"
 >
   <div class="px-4 py-5 app-divider-b">
     <a href="{% url 'dashboard' %}" class="flex items-center gap-2.5">
@@ -46,7 +46,7 @@
         </div>
         <div class="min-w-0">
           <p class="text-sm font-semibold truncate">{{ app_user.display_name }}</p>
-          <p class="text-[11px] text-muted-foreground">Level {{ app_user.level }} · {{ app_user.level_label }}</p>
+          <p class="text-[11px] text-muted-foreground">{{ app_user.level_label }}</p>
         </div>
       </div>
     </div>
@@ -56,16 +56,18 @@
         <div class="flex items-center gap-1.5">
           <i data-lucide="flame" class="h-4 w-4 text-warning"></i>
           <span id="sidebarStreakDays" class="text-sm font-semibold">{{ app_user.streak_days }} day streak</span>
+          {% if app_user.streak_freezes %}
+          <span id="sidebarStreakFreezes" class="inline-flex items-center h-5 px-1.5 text-[10px] rounded-full bg-accent/15 text-accent" title="Streak freezes available">
+            <i data-lucide="snowflake" class="h-2.5 w-2.5 mr-0.5"></i>{{ app_user.streak_freezes }}
+          </span>
+          {% endif %}
         </div>
         <span class="inline-flex items-center h-5 px-1.5 text-[10px] rounded-full bg-primary/15 text-primary">
           <i data-lucide="trophy" class="h-2.5 w-2.5 mr-0.5"></i>Pro
         </span>
       </div>
-      <div class="h-1.5 rounded-full bg-secondary overflow-hidden">
-        <div id="sidebarXpBar" class="h-full bg-gradient-primary rounded-full transition-all duration-300" style="width:{{ app_user.xp_progress_percent }}%"></div>
-      </div>
-      <p id="sidebarXpTotal" class="text-[11px] text-muted-foreground">{{ app_user.total_xp_display }} XP earned</p>
-      <p id="sidebarXpDetail" class="text-[10px] text-muted-foreground">{{ app_user.xp_into_level }} / {{ app_user.xp_for_next_level }} XP to level {{ app_user.level|add:"1" }}</p>
+      <p id="sidebarOverallLevel" class="text-[11px] text-muted-foreground">Overall level: {{ app_user.level_label }}</p>
+      <p id="sidebarXpTotal" class="text-[11px] font-semibold">{{ app_user.total_xp_display }} XP earned</p>
     </div>
     {% endif %}
     {% endif %}

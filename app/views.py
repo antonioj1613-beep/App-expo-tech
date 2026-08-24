@@ -1,5 +1,10 @@
+from types import SimpleNamespace
+
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.password_validation import validate_password
+from django.core.cache import cache
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import redirect, render
@@ -8,17 +13,18 @@ from pathlib import Path
 
 from .auth_utils import check_password, hash_password
 from .decorators import login_required
+from .gamification import derive_overall_cefr_level
 from .levels_service import build_levels_page_skills
 from .speaking_views import speaking_page_context
-from .models import Skill, User
+from .models import User
 from .stats_service import (
     build_dashboard_new_user_context,
     build_dashboard_returning_context,
     build_notification_items,
     build_progress_skills_list,
-    build_skill_context,
     build_skills_dashboard_list,
     build_statistics_cards,
+    cefr_display,
     ensure_user_skill_progress,
     format_accuracy,
     format_number,
@@ -28,7 +34,6 @@ from .stats_service import (
     profile_setup_tasks,
     profile_stats_cards,
     study_seconds_by_skill_this_month,
-    vocabulary_stats_for_user,
     weekly_accuracy_trend,
     weekly_xp_data,
 )
@@ -48,8 +53,38 @@ def _auth_context(mode, **extra):
 
 
 def _login_session(request, user):
+    # Rotate the session key on privilege escalation to prevent session fixation.
+    request.session.cycle_key()
     request.session["user_id"] = user.id
     request.session["username"] = user.username
+
+
+# ---------------------------------------------------------------------------
+# Login throttling — best-effort brute-force protection via the cache backend.
+# Note: with the default LocMemCache this only protects a single long-running
+# process (fine for the local server / a VPS); it resets on each cold start
+# on serverless hosts like Vercel.
+# ---------------------------------------------------------------------------
+LOGIN_ATTEMPT_LIMIT = 5
+LOGIN_ATTEMPT_WINDOW_SECONDS = 300
+
+
+def _login_attempt_key(request, login_value):
+    ip = request.META.get("REMOTE_ADDR", "unknown")
+    return f"login_attempts:{ip}:{login_value.strip().lower()}"
+
+
+def _too_many_login_attempts(request, login_value):
+    return cache.get(_login_attempt_key(request, login_value), 0) >= LOGIN_ATTEMPT_LIMIT
+
+
+def _register_failed_login(request, login_value):
+    key = _login_attempt_key(request, login_value)
+    cache.set(key, cache.get(key, 0) + 1, LOGIN_ATTEMPT_WINDOW_SECONDS)
+
+
+def _clear_login_attempts(request, login_value):
+    cache.delete(_login_attempt_key(request, login_value))
 
 
 # ---------------------------------------------------------------------------
@@ -110,12 +145,19 @@ def login_view(request):
             ctx["form_warning"] = "Please enter your login information before continuing."
             return render(request, "auth.html", ctx)
 
+        if _too_many_login_attempts(request, login):
+            ctx["form_error"] = "Too many failed attempts. Please wait a few minutes and try again."
+            ctx["login_value"] = login
+            return render(request, "auth.html", ctx)
+
         user = User.objects.filter(Q(username__iexact=login) | Q(email__iexact=login)).first()
         if not user or not check_password(password, user.password):
+            _register_failed_login(request, login)
             ctx["form_error"] = "Incorrect username/email or password."
             ctx["login_value"] = login
             return render(request, "auth.html", ctx)
 
+        _clear_login_attempts(request, login)
         _login_session(request, user)
         return redirect("dashboard")
 
@@ -141,6 +183,14 @@ def register_view(request):
 
         if not username or not email or not password:
             ctx["form_warning"] = "Please fill in all fields before creating an account."
+            ctx["username_value"] = username
+            ctx["email_value"] = email
+            return render(request, "auth.html", ctx)
+
+        try:
+            validate_password(password, user=SimpleNamespace(username=username, email=email))
+        except DjangoValidationError as exc:
+            ctx["form_warning"] = " ".join(exc.messages)
             ctx["username_value"] = username
             ctx["email_value"] = email
             return render(request, "auth.html", ctx)
@@ -247,49 +297,6 @@ def levels(request):
 
 
 @login_required
-def writing(request):
-    user = get_logged_in_user(request)
-    skill = build_skill_context(user, "writing")
-    from .lesson_service import build_lesson_context, get_skill_page_state
-
-    page_state = get_skill_page_state(user, "writing")
-    lesson = page_state["next_lesson"]
-    ctx = {
-        "active": "writing",
-        "skill": skill,
-        "page_state": page_state,
-    }
-    if lesson:
-        ctx.update(build_lesson_context(lesson, user, "writing"))
-    return render(request, "writing.html", ctx)
-
-
-@login_required
-def vocabulary(request):
-    user = get_logged_in_user(request)
-    skill = build_skill_context(user, "vocabulary")
-    from .lesson_service import build_lesson_context, get_skill_page_state
-
-    page_state = get_skill_page_state(user, "vocabulary")
-    lesson = page_state["next_lesson"]
-    ctx = {
-        "active": "vocabulary",
-        "skill": skill,
-        "page_state": page_state,
-        "vocab_stats": vocabulary_stats_for_user(user),
-    }
-    if lesson:
-        ctx.update(build_lesson_context(lesson, user, "vocabulary"))
-    stats = [
-        {"l": "Learned", "v": str(ctx["vocab_stats"]["learned"])},
-        {"l": "Mastered", "v": str(ctx["vocab_stats"]["mastered"])},
-        {"l": "Review due", "v": str(ctx["vocab_stats"]["review_due"])},
-    ]
-    ctx["stats"] = stats
-    return render(request, "vocabulary.html", ctx)
-
-
-@login_required
 def progress(request):
     user = get_logged_in_user(request)
     if not user:
@@ -306,15 +313,18 @@ def progress(request):
         completed += int(done)
         total_lessons += int(total)
     overall_progress = round(completed * 100 / total_lessons) if total_lessons else 0
-    overall_level = max((s["lv"] for s in skills), default=1)
+    # Median of assessed per-skill CEFR levels — must run on the raw values
+    # before the display-formatting pass below overwrites them.
+    overall_level = derive_overall_cefr_level([s["lv"] for s in skills])
+    for s in skills:
+        s["lv"] = cefr_display(s["lv"])
 
     if new_user:
         ctx = {
             "active": "progress",
             "is_new_user": True,
             "page_subtitle": "Your progress will appear here once you start learning",
-            "overall_level": 1,
-            "overall_label": "New learner",
+            "overall_level": "Unassessed",
             "overall_progress": 0,
             "chips": [
                 {"i": "flame", "v": "0", "l": "Streak"},
@@ -337,24 +347,13 @@ def progress(request):
             "active": "progress",
             "is_new_user": False,
             "page_subtitle": "Your learning journey, in detail",
-            "overall_level": overall_level,
-            "overall_label": _level_label(overall_level),
+            "overall_level": cefr_display(overall_level),
             "overall_progress": overall_progress,
             "skills": skills,
             "chips": chips,
             "badges": range(1, min(7, completed + 1)),
         },
     )
-
-
-def _level_label(level):
-    if level <= 3:
-        return "Beginner"
-    if level <= 7:
-        return "Intermediate"
-    if level <= 11:
-        return "Advanced"
-    return "Fluent"
 
 
 @login_required

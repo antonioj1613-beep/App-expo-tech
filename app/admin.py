@@ -6,13 +6,13 @@ from .models import (
     Skill,
     SkillLesson,
     SpeakingSession,
+    TutorErrorPattern,
     User,
     UserProfile,
     UserReadingLessonCompletion,
     UserSkillLessonCompletion,
     UserSkillProgress,
-    UserVocabularyMastery,
-    VocabularyWord,
+    UserVocabularyReviewState,
 )
 
 
@@ -20,7 +20,9 @@ from .models import (
 class UserAdmin(admin.ModelAdmin):
     list_display = ("username", "email", "created_at")
     search_fields = ("username", "email")
-    readonly_fields = ("created_at",)
+    # password is a bcrypt hash, not a plaintext field — read-only so an admin
+    # can't accidentally type a new value here and store it unhashed.
+    readonly_fields = ("created_at", "password")
 
 
 @admin.register(UserProfile)
@@ -28,11 +30,13 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = (
         "user",
         "streak_days",
+        "streak_freezes",
         "total_xp",
         "avg_accuracy",
         "study_hours",
         "words_learned",
         "last_active_date",
+        "last_freeze_consumed_at",
         "updated_at",
     )
     search_fields = ("user__username", "user__email")
@@ -48,8 +52,8 @@ class SkillAdmin(admin.ModelAdmin):
 
 @admin.register(UserSkillProgress)
 class UserSkillProgressAdmin(admin.ModelAdmin):
-    list_display = ("user", "skill", "level", "status", "lessons_completed", "last_updated")
-    list_filter = ("status", "skill")
+    list_display = ("user", "skill", "cefr_level", "status", "lessons_completed", "last_updated")
+    list_filter = ("status", "skill", "cefr_level")
     search_fields = ("user__username",)
     readonly_fields = ("last_updated",)
 
@@ -62,6 +66,21 @@ class SpeakingSessionAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at",)
 
 
+@admin.register(TutorErrorPattern)
+class TutorErrorPatternAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "skill",
+        "category",
+        "occurrence_count",
+        "last_detected_at",
+        "resolved_at",
+    )
+    list_filter = ("category", "skill", ("resolved_at", admin.EmptyFieldListFilter))
+    search_fields = ("user__username", "example_note")
+    readonly_fields = ("first_detected_at", "last_detected_at")
+
+
 @admin.register(PracticeSession)
 class PracticeSessionAdmin(admin.ModelAdmin):
     list_display = ("user", "skill", "xp_earned", "accuracy_score", "duration_seconds", "created_at")
@@ -70,19 +89,20 @@ class PracticeSessionAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at",)
 
 
-@admin.register(VocabularyWord)
-class VocabularyWordAdmin(admin.ModelAdmin):
-    list_display = ("word", "level", "sort_order")
-    search_fields = ("word", "meaning")
-    prepopulated_fields = {"slug": ("word",)}
-
-
-@admin.register(UserVocabularyMastery)
-class UserVocabularyMasteryAdmin(admin.ModelAdmin):
-    list_display = ("user", "word", "correct_count", "mastered_at", "updated_at")
-    list_filter = ("mastered_at",)
-    search_fields = ("user__username", "word__word")
-    readonly_fields = ("updated_at",)
+@admin.register(UserVocabularyReviewState)
+class UserVocabularyReviewStateAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "lesson",
+        "ease_factor",
+        "interval_days",
+        "repetition_count",
+        "next_review_date",
+        "last_reviewed_at",
+    )
+    list_filter = ("repetition_count",)
+    search_fields = ("user__username", "lesson__vocab_word")
+    readonly_fields = ("created_at", "updated_at")
 
 
 @admin.register(ReadingLesson)

@@ -55,7 +55,10 @@
           <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-border"></div></div>
           <div class="relative flex justify-center"><span class="bg-background px-3 text-xs text-muted-foreground">or continue with</span></div>
         </div>
-        <div class="grid grid-cols-2 gap-3"><button type="button" class="btn btn-glass">Google</button><button type="button" class="btn btn-glass">Apple</button></div>
+        <div class="grid grid-cols-2 gap-3">
+          <button type="button" class="btn btn-glass opacity-60 cursor-not-allowed" disabled title="Coming soon">Google</button>
+          <button type="button" class="btn btn-glass opacity-60 cursor-not-allowed" disabled title="Coming soon">Apple</button>
+        </div>
 
         <p class="mt-6 text-center text-sm text-muted-foreground">
           {% if mode == "login" %}Don't have an account? <a href="{% url 'register' %}" class="text-primary font-medium hover:underline">Sign up</a>
@@ -73,8 +76,8 @@
       <p class="mt-4 text-muted-foreground leading-relaxed">Lisa adapts to your level in real time — practice listening, reading, and writing with an AI tutor that actually understands you.</p>
       <div class="mt-8 grid grid-cols-3 gap-4 text-center">
         <div><div class="text-2xl font-bold text-gradient">15</div><div class="text-xs text-muted-foreground">Levels</div></div>
-        <div><div class="text-2xl font-bold text-gradient">200k+</div><div class="text-xs text-muted-foreground">Learners</div></div>
-        <div><div class="text-2xl font-bold text-gradient">4.9★</div><div class="text-xs text-muted-foreground">Rating</div></div>
+        <div><div class="text-2xl font-bold text-gradient">5</div><div class="text-xs text-muted-foreground">Skill paths</div></div>
+        <div><div class="text-2xl font-bold text-gradient">2</div><div class="text-xs text-muted-foreground">AI tutors</div></div>
       </div>
     </div>
   </div>

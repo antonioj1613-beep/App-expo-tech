@@ -20,7 +20,7 @@
     <div class="flex items-center gap-2">
       <button onclick="toggleTheme()" class="btn btn-ghost btn-icon rounded-full"><i data-lucide="sun-moon" class="h-[18px] w-[18px]"></i></button>
       <a href="{% url 'login' %}" class="btn btn-ghost hidden sm:inline-flex">Sign in</a>
-      <a href="{% url 'register' %}" class="btn btn-hero">Get started <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
+      <a href="{% url 'login' %}" class="btn btn-hero">Get started <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
     </div>
   </header>
 
@@ -147,8 +147,8 @@
       <div class="absolute inset-0 bg-gradient-glow opacity-40"></div>
       <div class="relative">
         <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Ready to build real skills?</h2>
-        <p class="mt-4 text-muted-foreground max-w-xl mx-auto">Join 200,000+ learners mastering English with Learning Skills — and discover Lisa along the way.</p>
-        <a href="{% url 'register' %}" class="btn btn-hero btn-xl mt-8">Get started free <i data-lucide="arrow-right" class="h-5 w-5"></i></a>
+        <p class="mt-4 text-muted-foreground max-w-xl mx-auto">Start mastering English with Learning Skills — and discover Lisa along the way.</p>
+        <a href="{% url 'login' %}" class="btn btn-hero btn-xl mt-8">Get started free <i data-lucide="arrow-right" class="h-5 w-5"></i></a>
       </div>
     </div>
   </section>

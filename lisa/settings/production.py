@@ -1,10 +1,25 @@
 """Production settings."""
 import os
 
+from django.core.exceptions import ImproperlyConfigured
+
 from .base import *  # noqa: F403
 
 DEBUG = False
 ALLOWED_HOSTS = ["*"]
+
+# Fail loudly instead of silently running production with a known, public
+# placeholder key (these strings are committed in base.py and .env.example).
+_INSECURE_SECRET_KEYS = {
+    "django-insecure-dev-only-change-me-in-production",
+    "change-me-to-a-long-random-string",
+}
+if SECRET_KEY in _INSECURE_SECRET_KEYS:  # noqa: F405
+    raise ImproperlyConfigured(
+        "DJANGO_SECRET_KEY is not set to a real value. Generate one with "
+        "`python -c \"from django.core.management.utils import get_random_secret_key; "
+        "print(get_random_secret_key())\"` and set it as an environment variable."
+    )
 
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True

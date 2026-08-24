@@ -139,6 +139,7 @@ def submit_quiz_answer(user: User, skill_slug: str, lesson_id: int, selected_ind
             accuracy_score=accuracy,
             duration_seconds=LESSON_DURATION_SECONDS,
             lessons_completed=1,
+            lesson_level=lesson.level,
         )
         UserSkillLessonCompletion.objects.create(
             user=user,

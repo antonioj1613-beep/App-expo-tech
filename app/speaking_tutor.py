@@ -8,8 +8,6 @@ import random
 
 import httpx
 
-from .gamification import compute_global_level, global_level_label
-
 # ---------------------------------------------------------------------------
 # Conversation limits
 # ---------------------------------------------------------------------------
@@ -85,27 +83,41 @@ TUTOR_PERSONAS = {
     "Maya": MAYA_PERSONA,
 }
 
-# Difficulty bands keyed to global learner level (from total XP).
+# Difficulty bands keyed to the Speaking skill's own CEFR sub-level
+# (UserSkillProgress.cefr_level for skill="speaking") — Phase 1 deliberately
+# switched this from the account-global XP level to Speaking's own assessed
+# level. Draft copy below — wording per band is a content/pedagogy call, not
+# finalized; revisit before relying on it.
 LEVEL_DIFFICULTY_GUIDANCE = {
-    "Beginner": (
-        "Learner level: Beginner (global level {level}). "
+    "A1": (
+        "Learner level: A1 (CEFR beginner). "
         "Use very simple vocabulary and short sentences. "
         "Focus on basic workplace greetings, simple requests, and everyday travel phrases."
     ),
-    "Intermediate": (
-        "Learner level: Intermediate (global level {level}). "
+    "A2": (
+        "Learner level: A2 (CEFR elementary). "
+        "Use simple, everyday vocabulary with short, clear sentences. "
+        "Focus on routine workplace and travel exchanges — introductions, simple scheduling, basic directions."
+    ),
+    "B1": (
+        "Learner level: B1 (CEFR intermediate). "
         "Use everyday professional English. "
         "Include common office and travel scenarios: scheduling, directions, ordering, short updates."
     ),
-    "Advanced": (
-        "Learner level: Advanced (global level {level}). "
+    "B2": (
+        "Learner level: B2 (CEFR upper-intermediate). "
         "Use more natural, varied phrasing. "
         "Discuss meetings, deadlines, customer service, and multi-step travel situations."
     ),
-    "Fluent": (
-        "Learner level: Fluent (global level {level}). "
+    "C1": (
+        "Learner level: C1 (CEFR advanced). "
         "Use nuanced, TOEIC Part 3–4 style discourse. "
         "Include opinions, brief explanations, and polite professional register — still keep replies short."
+    ),
+    "C2": (
+        "Learner level: C2 (CEFR proficient). "
+        "Use idiomatic, natural native-level phrasing with subtle register shifts. "
+        "Discuss abstract or nuanced professional topics — still keep replies short and spoken-sounding."
     ),
 }
 
@@ -160,24 +172,30 @@ def _wrap_learner_turn(user_message: str, history: list[dict]) -> str:
     )
 
 
-def build_system_prompt(character: str, *, global_level: int) -> str:
-    """Assemble the full Ollama system prompt for a tutor persona and learner level."""
+def build_system_prompt(character: str, *, cefr_level: str | None, error_context: str = "") -> str:
+    """
+    Assemble the full Ollama system prompt for a tutor persona and learner level.
+
+    cefr_level is Speaking's own per-skill CEFR level (UserSkillProgress for
+    skill="speaking") — deliberately NOT the account-global derived level.
+    None (not yet assessed — a new speaker, or too few graded turns) falls
+    back to A1, the safest floor.
+
+    error_context is the formatted top-N recurring-error block from
+    tutor_memory.format_error_context_for_prompt() — shared data source for
+    both Miles and Maya (a student's recurring mistakes belong to the
+    student, not to whichever persona is currently selected). Empty string
+    (the common case — most students have no qualifying patterns yet) is
+    simply omitted from assembly, not rendered as an empty section.
+    """
     persona = TUTOR_PERSONAS.get(character, MILES_PERSONA)
-    label = global_level_label(global_level)
-    difficulty = LEVEL_DIFFICULTY_GUIDANCE.get(label, LEVEL_DIFFICULTY_GUIDANCE["Beginner"]).format(
-        level=global_level
-    )
-    return (
-        f"{persona}\n\n"
-        f"{ENGAGEMENT_RULES}\n\n"
-        f"{SHARED_TUTOR_RULES}\n\n"
-        f"{difficulty}\n\n"
-        f"{REPLY_CHECKLIST}"
-    )
-
-
-def learner_global_level(total_xp: int) -> int:
-    return compute_global_level(total_xp)
+    difficulty = LEVEL_DIFFICULTY_GUIDANCE.get(cefr_level, LEVEL_DIFFICULTY_GUIDANCE["A1"])
+    sections = [persona, ENGAGEMENT_RULES, SHARED_TUTOR_RULES]
+    if error_context:
+        sections.append(error_context)
+    sections.append(difficulty)
+    sections.append(REPLY_CHECKLIST)
+    return "\n\n".join(sections)
 
 
 def ollama_available() -> bool:
@@ -194,11 +212,12 @@ def _ollama_reply(
     user_message: str,
     history: list[dict],
     *,
-    global_level: int,
+    cefr_level: str | None,
+    error_context: str = "",
 ) -> str | None:
     url = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
     model = os.environ.get("OLLAMA_MODEL", "llama3.2")
-    system_prompt = build_system_prompt(character, global_level=global_level)
+    system_prompt = build_system_prompt(character, cefr_level=cefr_level, error_context=error_context)
     framed_user = _wrap_learner_turn(user_message, history)
     messages = [{"role": "system", "content": system_prompt}]
     messages.extend(history[-MAX_HISTORY_TURNS:])
@@ -259,10 +278,11 @@ def tutor_reply(
     user_message: str,
     history: list[dict],
     *,
-    global_level: int = 1,
+    cefr_level: str | None = None,
+    error_context: str = "",
 ) -> dict:
     character = character if character in TUTOR_PERSONAS else "Miles"
-    reply = _ollama_reply(character, user_message, history, global_level=global_level)
+    reply = _ollama_reply(character, user_message, history, cefr_level=cefr_level, error_context=error_context)
     engine = "ollama" if reply else "builtin"
     if not reply:
         reply = _fallback_reply(user_message, history)

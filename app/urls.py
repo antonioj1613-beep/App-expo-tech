@@ -5,6 +5,8 @@ from . import views
 from . import reading_views
 from . import listening_views
 from . import speaking_views
+from . import vocabulary_views
+from . import writing_views
 
 urlpatterns = [
     path(
@@ -23,8 +25,10 @@ urlpatterns = [
     path("listening/api/submit/", listening_views.listening_submit, name="listening_submit"),
     path("reading/", reading_views.reading, name="reading"),
     path("reading/api/submit/", reading_views.reading_submit, name="reading_submit"),
-    path("writing/", views.writing, name="writing"),
-    path("vocabulary/", views.vocabulary, name="vocabulary"),
+    path("writing/", writing_views.writing, name="writing"),
+    path("writing/api/submit/", writing_views.writing_submit, name="writing_submit"),
+    path("vocabulary/", vocabulary_views.vocabulary, name="vocabulary"),
+    path("vocabulary/api/submit/", vocabulary_views.vocabulary_submit, name="vocabulary_submit"),
     path("speaking/", speaking_views.speaking, name="speaking"),
     path("speaking/api/start/", speaking_views.speaking_start, name="speaking_start"),
     path("speaking/api/chat/", speaking_views.speaking_chat, name="speaking_chat"),

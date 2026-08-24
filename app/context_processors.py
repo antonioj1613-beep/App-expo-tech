@@ -53,15 +53,6 @@ def navigation(request):
                     {"name": "statistics", "title": "Statistics", "icon": "bar-chart-3"},
                 ],
             },
-            {
-                "label": "Account",
-                "items": [
-                    {"name": "profile", "title": "Profile", "icon": "user"},
-                    {"name": "notifications", "title": "Notifications", "icon": "bell"},
-                    {"name": "settings", "title": "Settings", "icon": "settings"},
-                    {"name": "premium", "title": "Premium", "icon": "crown"},
-                ],
-            },
         ]
     }
 

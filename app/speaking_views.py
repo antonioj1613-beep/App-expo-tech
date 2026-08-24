@@ -2,16 +2,21 @@
 
 from __future__ import annotations
 
+import logging
+
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
 
 from .decorators import login_required
-from .models import SpeakingSession
+from .models import SpeakingSession, UserSkillProgress
 from .speaking_stt import model_ready, transcribe_wav, vosk_installed
-from .speaking_tutor import MAX_HISTORY_TURNS, learner_global_level, ollama_available, starter_question, tutor_reply
+from .speaking_tutor import MAX_HISTORY_TURNS, ollama_available, starter_question, tutor_reply
 from .stats_service import build_post_session_payload, build_skill_context, finalize_speaking_session
+from .tutor_memory import format_error_context_for_prompt, get_top_error_patterns, run_error_extraction
 from .user_helpers import get_logged_in_user
+
+logger = logging.getLogger(__name__)
 
 
 def _clean_transcript(raw: list) -> list[dict]:
@@ -26,10 +31,17 @@ def _clean_transcript(raw: list) -> list[dict]:
     return cleaned
 
 
-def _user_global_level(user) -> int:
-    profile = getattr(user, "profile", None)
-    total_xp = profile.total_xp if profile else 0
-    return learner_global_level(total_xp)
+def _speaking_cefr_level(user) -> str | None:
+    """
+    Speaking's own per-skill CEFR level — deliberate Phase 1 authority flip.
+
+    Previously this read the account-global compute_global_level(total_xp)
+    tier. It now reads Speaking's own UserSkillProgress.cefr_level instead,
+    so tutor difficulty tracks how the student is actually performing in
+    Speaking specifically, not their XP across all skills combined.
+    """
+    progress = UserSkillProgress.objects.filter(user=user, skill__slug="speaking").first()
+    return progress.cefr_level if progress else None
 
 
 def _get_owned_session(user, session_id: str | None) -> SpeakingSession | None:
@@ -117,8 +129,9 @@ def speaking_chat(request):
     transcript = _clean_transcript(session.transcript)
     history = transcript[-MAX_HISTORY_TURNS:]
 
-    global_level = _user_global_level(user)
-    result = tutor_reply(character, message, history, global_level=global_level)
+    cefr_level = _speaking_cefr_level(user)
+    error_context = format_error_context_for_prompt(get_top_error_patterns(user, "speaking"))
+    result = tutor_reply(character, message, history, cefr_level=cefr_level, error_context=error_context)
 
     transcript.append({"role": "user", "content": message})
     transcript.append({"role": "assistant", "content": result["reply"]})
@@ -137,8 +150,9 @@ def speaking_transcribe(request):
 
     try:
         transcript = transcribe_wav(audio.read())
-    except Exception as exc:
-        return JsonResponse({"error": f"Could not transcribe audio: {exc}"}, status=503)
+    except Exception:
+        logger.warning("Speech transcription failed", exc_info=True)
+        return JsonResponse({"error": "Could not transcribe audio. Please try again."}, status=503)
 
     if not transcript:
         return JsonResponse({"error": "No speech detected. Try speaking louder or closer to the mic."}, status=400)
@@ -176,4 +190,13 @@ def speaking_end(request):
     session.transcript = cleaned
     session.save(update_fields=["transcript"])
     session = finalize_speaking_session(session, duration_seconds=duration_seconds)
+
+    # Best-effort: run_error_extraction() already never raises on Ollama
+    # failure, but a session is fully finalized above regardless of what
+    # happens here — this must never turn a successful session-end into an
+    # error response.
+    try:
+        run_error_extraction(user, "speaking", session.transcript)
+    except Exception:
+        logger.warning("Tutor error-pattern extraction failed", exc_info=True)
     return JsonResponse(build_post_session_payload(user, session))
