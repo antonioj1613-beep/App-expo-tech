@@ -22,7 +22,7 @@
             {% if min_words %}(min {{ min_words }}){% endif %}
           </span>
           <div class="flex gap-2">
-            <button type="button" class="btn btn-glass btn-sm opacity-60 cursor-not-allowed" disabled title="Coming soon"><i data-lucide="wand-2" class="h-3.5 w-3.5"></i> AI hint</button>
+            <button id="writingCheckNowBtn" type="button" class="btn btn-glass btn-sm" title="Check your writing now, without waiting"><i data-lucide="wand-2" class="h-3.5 w-3.5"></i> Check now</button>
             <button id="writingSubmitBtn" type="button" class="btn btn-hero btn-sm" disabled>Submit</button>
           </div>
         </div>
@@ -37,7 +37,20 @@
           <div class="h-8 w-8 rounded-lg bg-gradient-primary grid place-items-center shadow-glow"><i data-lucide="sparkles" class="h-4 w-4 text-primary-foreground"></i></div>
           <h3 class="font-semibold">Feedback</h3>
         </div>
-        <p id="aiFeedbackText" class="text-sm text-muted-foreground">Submit your writing to see how you did. Full AI feedback on grammar, clarity, and tone is coming soon.</p>
+        <p id="aiFeedbackText" class="text-sm text-muted-foreground">As you write, we'll flag things to check here. Submit for a full review.</p>
+        <ul id="writingLiveFlags" class="hidden mt-3 space-y-2 text-xs"></ul>
+        <div id="writingErrorsBlock" class="hidden mt-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Things to work on</p>
+          <ul id="writingErrorsList" class="space-y-2 text-xs"></ul>
+        </div>
+        <div id="writingRecommendationsBlock" class="hidden mt-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Recommendations</p>
+          <ul id="writingRecommendationsList" class="space-y-1 text-xs list-disc list-inside"></ul>
+        </div>
+        <div id="writingWeakPointsBlock" class="hidden mt-4 pt-4 border-t border-border">
+          <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Recurring patterns</p>
+          <p id="writingWeakPointsText" class="text-xs text-muted-foreground"></p>
+        </div>
       </div>
     </div>
   </div>

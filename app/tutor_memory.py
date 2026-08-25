@@ -27,7 +27,7 @@ from datetime import timedelta
 import httpx
 from django.utils import timezone
 
-from .gamification import ERROR_CATEGORIES, ERROR_CATEGORY_KEYS
+from .gamification import ERROR_CATEGORY_KEYS, SKILL_ERROR_CATEGORIES
 from .models import Skill, TutorErrorPattern, User
 
 # ---------------------------------------------------------------------------
@@ -39,7 +39,9 @@ EXTRACTION_TIMEOUT_SECONDS = 15.0  # shorter than the 45s conversational timeout
 # still shouldn't hang the response indefinitely.
 EXAMPLE_NOTE_MAX_LENGTH = 200  # defensive cap even if the model ignores the length hint
 
-_CATEGORY_LIST_FOR_PROMPT = "\n".join(f"- {key}: {label}" for key, label in ERROR_CATEGORIES)
+_SPEAKING_CATEGORIES = SKILL_ERROR_CATEGORIES["speaking"]
+_SPEAKING_CATEGORY_KEYS = frozenset(key for key, _ in _SPEAKING_CATEGORIES)
+_CATEGORY_LIST_FOR_PROMPT = "\n".join(f"- {key}: {label}" for key, label in _SPEAKING_CATEGORIES)
 
 EXTRACTION_SYSTEM_PROMPT = f"""
 You are analyzing a transcript of an English learner practicing spoken English with an AI tutor. Your only job is to identify recurring language error patterns in the LEARNER's turns. Ignore the tutor's turns entirely.
@@ -103,7 +105,7 @@ def _extract_via_ollama(learner_turns: list[str]) -> list[dict]:
             continue
         category = item.get("category")
         example = str(item.get("example", "")).strip()
-        if category in ERROR_CATEGORY_KEYS:
+        if category in _SPEAKING_CATEGORY_KEYS:
             detected.append({"category": category, "example": example})
     return detected
 

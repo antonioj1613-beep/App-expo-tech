@@ -291,8 +291,24 @@ ERROR_CATEGORIES = [
     ("r_l_distinction", "R/L sound distinction"),
     ("word_stress_intonation", "Word stress and intonation"),
     ("false_friends_word_choice", "False friends / word choice"),
+    ("spelling", "Spelling"),
+    ("run_on_sentences", "Run-on sentences and comma splices"),
+    ("punctuation", "Punctuation usage"),
 ]
 ERROR_CATEGORY_KEYS = frozenset(key for key, _ in ERROR_CATEGORIES)
+
+# Per-skill subsets -- each skill's extraction prompt should only offer its
+# own relevant categories, not the full merged list above (Speaking's
+# prompt shouldn't be able to tag "punctuation", Writing's shouldn't see
+# "th_sound"). Speaking's subset is exactly the original 12, unchanged from
+# before the 3 writing-only additions above -- zero behavior change to the
+# already-shipped Speaking error memory.
+_SPEAKING_ONLY_CATEGORIES = frozenset({"th_sound", "r_l_distinction", "word_stress_intonation"})
+_WRITING_ONLY_CATEGORIES = frozenset({"spelling", "run_on_sentences", "punctuation"})
+SKILL_ERROR_CATEGORIES = {
+    "speaking": [pair for pair in ERROR_CATEGORIES if pair[0] not in _WRITING_ONLY_CATEGORIES],
+    "writing": [pair for pair in ERROR_CATEGORIES if pair[0] not in _SPEAKING_ONLY_CATEGORIES],
+}
 
 
 # ---------------------------------------------------------------------------
