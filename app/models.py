@@ -202,25 +202,6 @@ class PracticeSession(models.Model):
         return f"{self.user.username} · {self.skill.slug} · {self.xp_earned} XP"
 
 
-class ReadingLesson(models.Model):
-    """Deprecated — use SkillLesson. Kept until migration completes."""
-
-    slug = models.SlugField(max_length=80, unique=True)
-    title = models.CharField(max_length=120)
-    passage = models.TextField()
-    question_prompt = models.TextField()
-    options = models.JSONField(help_text="List of answer option strings.")
-    correct_index = models.PositiveSmallIntegerField()
-    level = models.PositiveSmallIntegerField(default=1)
-    sort_order = models.PositiveIntegerField(default=0)
-
-    class Meta:
-        ordering = ["sort_order", "id"]
-
-    def __str__(self):
-        return self.title
-
-
 STAFF_SKILL_SLUGS = ("listening", "reading", "writing", "vocabulary")
 
 
@@ -245,10 +226,23 @@ class SkillLesson(models.Model):
     sort_order = models.PositiveIntegerField(default=0)
     is_published = models.BooleanField(default=True)
 
-    passage = models.TextField(blank=True, help_text="Reading: passage text.")
+    passage = models.TextField(blank=True, help_text="Reading: passage text. Listening: spoken-style transcript.")
     question_prompt = models.TextField(blank=True, help_text="Reading/Listening: question text.")
     options = models.JSONField(default=list, blank=True, help_text="Quiz answer options (list of strings).")
     correct_index = models.PositiveSmallIntegerField(default=0)
+
+    # Stock photo for Listening Part 1 ("photograph") and Writing Q1-5
+    # ("write a sentence based on the picture") style items. URL-based
+    # (hotlinked to the source CDN), not an uploaded ImageField -- avoids
+    # needing MEDIA_ROOT/serving infra this app doesn't have, and sidesteps
+    # the same ephemeral-storage problem already documented for serverless
+    # SQLite (see USING_EPHEMERAL_DATABASE in lisa/settings/base.py).
+    # Licensed/royalty-free sources only (Unsplash, Pexels, etc.) -- never
+    # scraped or copied from real ETS TOEIC materials.
+    image_url = models.URLField(blank=True, help_text="Stock photo URL for photo-description items.")
+    image_credit = models.CharField(
+        max_length=200, blank=True, help_text="Attribution, e.g. 'Photo by Jane Doe on Unsplash'."
+    )
 
     writing_prompt = models.TextField(blank=True, help_text="Writing: learner prompt.")
     min_words = models.PositiveSmallIntegerField(null=True, blank=True)
@@ -324,23 +318,6 @@ class UserVocabularyReviewState(models.Model):
     def __str__(self):
         due = self.next_review_date.isoformat() if self.next_review_date else "new"
         return f"{self.user.username} · {self.lesson.vocab_word} (due {due})"
-
-
-class UserReadingLessonCompletion(models.Model):
-    """Tracks first completion of a reading lesson (prevents duplicate XP)."""
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reading_completions")
-    lesson = models.ForeignKey(ReadingLesson, on_delete=models.CASCADE, related_name="completions")
-    was_correct = models.BooleanField()
-    xp_earned = models.PositiveIntegerField(default=0)
-    completed_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = [["user", "lesson"]]
-        ordering = ["-completed_at"]
-
-    def __str__(self):
-        return f"{self.user.username} · {self.lesson.slug}"
 
 
 class TutorErrorPattern(models.Model):

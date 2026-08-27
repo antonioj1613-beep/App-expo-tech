@@ -10,6 +10,12 @@
   <div class="grid lg:grid-cols-[1fr_360px] gap-6 max-w-6xl mx-auto">
     <div class="glass rounded-2xl">
       <div class="p-6 space-y-4">
+        {% if image_url %}
+        <div class="rounded-xl overflow-hidden">
+          <img src="{{ image_url }}" alt="" class="w-full aspect-video object-cover">
+        </div>
+        {% if image_credit %}<p class="text-[10px] text-muted-foreground -mt-2">{{ image_credit }}</p>{% endif %}
+        {% endif %}
         <div>
           <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-2">{{ question_label }}</p>
           <h2 class="font-display text-lg font-semibold leading-snug">{{ writing_prompt }}</h2>

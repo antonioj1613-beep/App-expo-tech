@@ -2,14 +2,12 @@ from django.contrib import admin
 
 from .models import (
     PracticeSession,
-    ReadingLesson,
     Skill,
     SkillLesson,
     SpeakingSession,
     TutorErrorPattern,
     User,
     UserProfile,
-    UserReadingLessonCompletion,
     UserSkillLessonCompletion,
     UserSkillProgress,
     UserVocabularyReviewState,
@@ -105,17 +103,6 @@ class UserVocabularyReviewStateAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
 
-@admin.register(ReadingLesson)
-class ReadingLessonAdmin(admin.ModelAdmin):
-    list_display = ("title", "slug", "level", "sort_order", "correct_index")
-    search_fields = ("title", "slug")
-    prepopulated_fields = {"slug": ("title",)}
-    ordering = ("sort_order",)
-
-    def has_module_permission(self, request):
-        return False
-
-
 @admin.register(SkillLesson)
 class SkillLessonAdmin(admin.ModelAdmin):
     list_display = ("title", "skill", "level", "sort_order", "is_published", "updated_at")
@@ -126,6 +113,7 @@ class SkillLessonAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {"fields": ("skill", "level", "title", "slug", "sort_order", "is_published")}),
         ("Quiz (Reading / Listening)", {"fields": ("passage", "question_prompt", "options", "correct_index")}),
+        ("Photo (Listening Part 1 / Writing photo-sentence)", {"fields": ("image_url", "image_credit")}),
         ("Writing", {"fields": ("writing_prompt", "min_words", "max_words")}),
         ("Vocabulary", {"fields": ("vocab_word", "vocab_ipa", "vocab_meaning", "vocab_example", "vocab_cefr")}),
     )
@@ -139,9 +127,3 @@ class UserSkillLessonCompletionAdmin(admin.ModelAdmin):
     readonly_fields = ("completed_at",)
 
 
-@admin.register(UserReadingLessonCompletion)
-class UserReadingLessonCompletionAdmin(admin.ModelAdmin):
-    list_display = ("user", "lesson", "was_correct", "xp_earned", "completed_at")
-    list_filter = ("was_correct",)
-    search_fields = ("user__username", "lesson__title")
-    readonly_fields = ("completed_at",)

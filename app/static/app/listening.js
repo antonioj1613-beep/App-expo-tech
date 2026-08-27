@@ -1,7 +1,46 @@
 /**
- * Listening lesson — submit answer and refresh progress chrome.
+ * Listening lesson — submit answer, refresh progress chrome, and play the
+ * transcript aloud via the browser's built-in TTS (no audio files, no
+ * hosting — see the content-migration design doc for why: it's synthesizing
+ * our own arbitrary scripts on the fly, so script writing isn't constrained
+ * by what a fixed stock-audio library happens to have).
  */
 (function () {
+  const playBtn = document.getElementById("playBtn");
+  const playIcon = document.getElementById("playIcon");
+  const passageEl = document.getElementById("listeningPassageText");
+
+  function setIcon(name) {
+    if (!playIcon) return;
+    playIcon.setAttribute("data-lucide", name);
+    if (window.lucide) window.lucide.createIcons();
+  }
+
+  if (playBtn && passageEl && "speechSynthesis" in window) {
+    playBtn.addEventListener("click", function () {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        setIcon("play");
+        return;
+      }
+      const text = passageEl.textContent.trim();
+      if (!text) return;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.onend = function () {
+        setIcon("play");
+      };
+      utterance.onerror = function () {
+        setIcon("play");
+      };
+      window.speechSynthesis.speak(utterance);
+      setIcon("pause");
+    });
+  } else if (playBtn) {
+    playBtn.disabled = true;
+    playBtn.title = "Audio playback isn't supported in this browser.";
+  }
+
   const config = document.getElementById("listening-config");
   if (!config) return;
 

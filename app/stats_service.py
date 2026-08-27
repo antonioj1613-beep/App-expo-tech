@@ -34,10 +34,17 @@ from .models import (
 from .user_helpers import ensure_profile
 
 SKILL_SEED_DATA = [
+    # total_lessons here is only a fallback default used before any
+    # SkillLesson exists for a skill (see build_skill_context) — for the
+    # four staff-managed skills, sync_skill_lesson_count (signals.py)
+    # overwrites this with the real published-lesson count on every
+    # SkillLesson save/delete, so keep these roughly in sync with the
+    # seed_*.py catalogs to avoid a stale value between seeding and a
+    # user's next registration (which re-runs seed_skills()).
     {"name": "Listening", "slug": "listening", "total_lessons": 60},
-    {"name": "Reading", "slug": "reading", "total_lessons": 52},
-    {"name": "Writing", "slug": "writing", "total_lessons": 44},
-    {"name": "Vocabulary", "slug": "vocabulary", "total_lessons": 280},
+    {"name": "Reading", "slug": "reading", "total_lessons": 53},
+    {"name": "Writing", "slug": "writing", "total_lessons": 34},
+    {"name": "Vocabulary", "slug": "vocabulary", "total_lessons": 270},
     {"name": "Speaking", "slug": "speaking", "total_lessons": 30},
 ]
 

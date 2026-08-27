@@ -73,6 +73,8 @@ def build_lesson_context(lesson: SkillLesson, user: User, skill_slug: str) -> di
         "already_completed": already_done,
         "skill": skill,
         "level": lesson.level,
+        "image_url": lesson.image_url,
+        "image_credit": lesson.image_credit,
     }
 
     if skill_slug in QUIZ_SKILL_SLUGS:

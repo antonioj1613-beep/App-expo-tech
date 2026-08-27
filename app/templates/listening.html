@@ -9,18 +9,30 @@
   {% else %}
   <div class="grid lg:grid-cols-[1fr_360px] gap-6 max-w-6xl mx-auto">
     <div class="glass rounded-2xl overflow-hidden">
+      {% if image_url %}
+      <div class="relative aspect-video bg-secondary/40">
+        <img src="{{ image_url }}" alt="" class="absolute inset-0 h-full w-full object-cover">
+        {% if passage %}
+        <button id="playBtn" type="button" class="absolute bottom-3 right-3 h-14 w-14 rounded-full bg-gradient-primary grid place-items-center shadow-glow hover:scale-105 transition-transform">
+          <i id="playIcon" data-lucide="play" class="h-6 w-6 text-primary-foreground ml-0.5"></i>
+        </button>
+        {% endif %}
+      </div>
+      {% if image_credit %}<p class="px-5 pt-2 text-[10px] text-muted-foreground">{{ image_credit }}</p>{% endif %}
+      {% else %}
       <div class="relative aspect-video bg-gradient-to-br from-primary/20 via-background to-accent/10 grid place-items-center">
         <div class="absolute inset-0 bg-gradient-glow opacity-40"></div>
         <button id="playBtn" type="button" class="relative h-20 w-20 rounded-full bg-gradient-primary grid place-items-center shadow-glow hover:scale-105 transition-transform">
           <i id="playIcon" data-lucide="play" class="h-8 w-8 text-primary-foreground ml-1"></i>
         </button>
       </div>
+      {% endif %}
       <div class="p-5">
         <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-2">{{ lesson_title }}</p>
         {% if passage %}
-        <p class="text-sm text-muted-foreground leading-relaxed">{{ passage }}</p>
+        <p id="listeningPassageText" class="text-sm text-muted-foreground leading-relaxed">{{ passage }}</p>
         {% else %}
-        <p class="text-sm text-muted-foreground">Listen to the audio and answer the question.</p>
+        <p class="text-sm text-muted-foreground">Look at the picture and choose the statement that best describes it.</p>
         {% endif %}
       </div>
     </div>

@@ -1,18 +1,23 @@
 """
 Writing submit-time AI grading — writing feature.
 
-One combined Ollama call per submission, returning a holistic rubric
-score, prose feedback, detected error patterns, and higher-level
-recommendations in a single JSON response. Combined into one call rather
-than split like Speaking's live-reply/post-session-extraction split,
-because a Writing submission happens once per lesson attempt — there's no
-"keep the hot path fast" pressure the way Speaking's live chat turns have,
-so splitting would only multiply the worst-case wait for no benefit.
+One combined Gemini call per submission (Google AI Studio free tier —
+generateContent, not Ollama), returning a holistic rubric score, prose
+feedback, detected error patterns, and higher-level recommendations in a
+single structured JSON response. Combined into one call rather than split
+like Speaking's live-reply/post-session-extraction split, because a
+Writing submission happens once per lesson attempt — there's no "keep the
+hot path fast" pressure the way Speaking's live chat turns have, so
+splitting would only multiply the worst-case wait for no benefit.
 
-On any failure (Ollama down, timeout, bad JSON, missing required fields)
-this returns None — the caller (writing_views.writing_submit) falls back
-to the pre-existing word-count placeholder, exactly like Speaking falls
-back to _fallback_reply() when Ollama is unavailable.
+Speaking (speaking_tutor.py, tutor_memory.py) intentionally still uses
+Ollama, unchanged — this module is the only one that switched providers.
+
+On any failure (missing/invalid GEMINI_API_KEY, Gemini unreachable,
+timeout, rate limit, bad JSON, missing required fields) this returns
+None — the caller (writing_views.writing_submit) falls back to the
+pre-existing word-count placeholder, exactly like Speaking falls back to
+_fallback_reply() when Ollama is unavailable.
 
 Kept separate from tutor_memory.py (which stays skill-agnostic — record
 storage + injection query only) and doesn't extend
@@ -34,9 +39,36 @@ GRADING_TIMEOUT_SECONDS = 20.0  # a submit-time call the student is waiting on,
 # same graceful-degradation shape as Speaking's post-session extraction,
 # just a shorter budget since nothing else in the response depends on it.
 
+GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+
 _WRITING_CATEGORIES = SKILL_ERROR_CATEGORIES["writing"]
 _WRITING_CATEGORY_KEYS = frozenset(key for key, _ in _WRITING_CATEGORIES)
 _CATEGORY_LIST_FOR_PROMPT = "\n".join(f"- {key}: {label}" for key, label in _WRITING_CATEGORIES)
+
+# Enforced by Gemini at decode time (responseMimeType + responseSchema below),
+# not just requested in prompt text like the Ollama version was — the model
+# structurally cannot emit a category outside this enum. The post-hoc filter
+# in grade_writing_submission() stays anyway as defense in depth.
+_WRITING_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "rubric_score": {"type": "integer"},
+        "feedback_summary": {"type": "string"},
+        "errors": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "category": {"type": "string", "enum": sorted(_WRITING_CATEGORY_KEYS)},
+                    "example": {"type": "string"},
+                },
+                "required": ["category", "example"],
+            },
+        },
+        "recommendations": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["rubric_score", "feedback_summary", "errors", "recommendations"],
+}
 
 # Draft copy, same provisional status as speaking_tutor.LEVEL_DIFFICULTY_GUIDANCE.
 LEVEL_GRADING_GUIDANCE = {
@@ -49,10 +81,9 @@ LEVEL_GRADING_GUIDANCE = {
 }
 
 RESPONSE_SHAPE_INSTRUCTIONS = (
-    "Output ONLY valid JSON, no markdown fences, no other text, in exactly this shape:\n"
-    '{"rubric_score": 78, "feedback_summary": "one short encouraging paragraph, 2-3 sentences", '
-    '"errors": [{"category": "articles", "example": "short quoted snippet under 15 words"}], '
-    '"recommendations": ["one short actionable sentence", "..."]}\n'
+    # No longer asks for JSON formatting/shape here -- generationConfig's
+    # responseMimeType + responseSchema enforce that structurally now. This
+    # is field-level semantic guidance the schema can't express on its own.
     "rubric_score is 0-100 reflecting grammar correctness, task completion, and clarity for this learner's level.\n"
     "errors: only include a category if you see a real, clear instance in the learner's own writing — "
     "classify each into EXACTLY ONE of these categories (use the key exactly as written, do not invent new ones):\n"
@@ -103,10 +134,12 @@ def grade_writing_submission(
     max_words: int | None,
     cefr_level: str | None,
 ) -> dict | None:
-    """Single Ollama call: rubric score + feedback + errors + recommendations.
+    """Single Gemini call: rubric score + feedback + errors + recommendations.
     Returns None on any failure — caller must fall back to the placeholder."""
-    url = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
-    model = os.environ.get("OLLAMA_MODEL", "llama3.2")
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return None  # optional by design, same as Ollama being unreachable — no key, no call, straight to placeholder
+    model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
     error_context = format_error_context_for_prompt(get_top_error_patterns(user, "writing"))
     system_prompt = _build_grading_prompt(
@@ -119,21 +152,35 @@ def grade_writing_submission(
 
     try:
         response = httpx.post(
-            f"{url}/api/chat",
+            f"{GEMINI_API_BASE_URL}/{model}:generateContent",
+            headers={"x-goog-api-key": api_key},
             json={
-                "model": model,
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": essay},
-                ],
-                "stream": False,
-                "options": {"temperature": 0.3, "num_predict": 500},
+                "systemInstruction": {"parts": [{"text": system_prompt}]},
+                "contents": [{"role": "user", "parts": [{"text": essay}]}],
+                "generationConfig": {
+                    "temperature": 0.3,
+                    # 500 was enough for Ollama (no hidden reasoning tokens);
+                    # Gemini 3.x "thinking" models spend part of the output
+                    # budget on invisible reasoning before the visible JSON,
+                    # and that thinking-token spend varies noticeably between
+                    # calls even at the same essay/prompt -- 2048 still
+                    # truncated (finishReason: MAX_TOKENS) on roughly half of
+                    # live test calls. 4096 leaves enough headroom to make
+                    # that rare rather than routine.
+                    "maxOutputTokens": 4096,
+                    "responseMimeType": "application/json",
+                    "responseSchema": _WRITING_RESPONSE_SCHEMA,
+                },
             },
             timeout=GRADING_TIMEOUT_SECONDS,
         )
         if response.status_code != 200:
-            return None
-        content = response.json().get("message", {}).get("content", "")
+            return None  # covers 429 (quota exhausted) same as any other failure -- straight to placeholder, no retry
+        candidates = response.json().get("candidates") or []
+        if not candidates:
+            return None  # empty when Gemini's safety filters block the prompt or the output
+        parts = candidates[0].get("content", {}).get("parts") or []
+        content = parts[0].get("text", "") if parts else ""
         parsed = json.loads(_strip_code_fences(content))
     except (httpx.HTTPError, OSError, json.JSONDecodeError, KeyError, ValueError):
         return None
