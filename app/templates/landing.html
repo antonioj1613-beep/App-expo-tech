@@ -2,27 +2,27 @@
 {% load static %}
 {% block title %}Learning Skills — Master English, one skill at a time{% endblock %}
 {% block body %}
-<div class="min-h-screen bg-background text-foreground relative overflow-hidden">
-  <div class="pointer-events-none absolute inset-0 bg-gradient-mesh opacity-80"></div>
-  <div class="pointer-events-none absolute inset-0 grid-bg opacity-40"></div>
+<header data-scroll-header class="fade-in sticky top-0 z-20 max-w-7xl mx-auto px-6 lg:px-8 py-6 flex items-center justify-between">
+  <a href="{% url 'landing' %}" class="flex items-center gap-2.5">
+    {% include "partials/logo.html" %}
+    <span class="font-display font-bold text-lg tracking-tight">Learning Skills</span>
+  </a>
+  <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+    <a href="#about" class="hover:text-foreground transition">About</a>
+    <a href="#tools" class="hover:text-foreground transition">Tools</a>
+    <a href="#features" class="hover:text-foreground transition">Features</a>
+    <a href="#lisa" class="hover:text-foreground transition">Lisa</a>
+  </nav>
+  <div class="flex items-center gap-2">
+    <button onclick="toggleTheme()" class="btn btn-ghost btn-icon rounded-full"><i data-lucide="sun-moon" class="h-[18px] w-[18px]"></i></button>
+    <a href="{% url 'login' %}" class="btn btn-ghost hidden sm:inline-flex">Sign in</a>
+    <a href="{% url 'login' %}" class="btn btn-hero">Get started <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
+  </div>
+</header>
 
-  <header class="fade-in relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-6 flex items-center justify-between">
-    <a href="{% url 'landing' %}" class="flex items-center gap-2.5">
-      {% include "partials/logo.html" %}
-      <span class="font-display font-bold text-lg tracking-tight">Learning Skills</span>
-    </a>
-    <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-      <a href="#about" class="hover:text-foreground transition">About</a>
-      <a href="#tools" class="hover:text-foreground transition">Tools</a>
-      <a href="#features" class="hover:text-foreground transition">Features</a>
-      <a href="#lisa" class="hover:text-foreground transition">Lisa</a>
-    </nav>
-    <div class="flex items-center gap-2">
-      <button onclick="toggleTheme()" class="btn btn-ghost btn-icon rounded-full"><i data-lucide="sun-moon" class="h-[18px] w-[18px]"></i></button>
-      <a href="{% url 'login' %}" class="btn btn-ghost hidden sm:inline-flex">Sign in</a>
-      <a href="{% url 'login' %}" class="btn btn-hero">Get started <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
-    </div>
-  </header>
+<div class="min-h-screen bg-background text-foreground relative overflow-hidden">
+  <div class="pointer-events-none absolute inset-0 bg-gradient-mesh gradient-drift opacity-80"></div>
+  <div class="pointer-events-none absolute inset-0 grid-bg opacity-40"></div>
 
   <!-- Hero: Learning Skills -->
   <section class="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pt-16 pb-20 text-center">
@@ -160,4 +160,5 @@
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'app/scroll-reveal.js' %}" defer></script>
+<script src="{% static 'app/navbar-scroll.js' %}" defer></script>
 {% endblock %}

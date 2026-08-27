@@ -1,11 +1,11 @@
 {% extends "base_app.html" %}
-{% block title %}Settings — Lisa{% endblock %}
+{% block title %}Settings — Learning Skills{% endblock %}
 {% block main %}
 {% include "partials/header.html" with title="Settings" subtitle="Customize your learning experience" %}
 <main class="flex-1 p-4 md:p-8 space-y-6 max-w-3xl">
   <div class="bg-card rounded-2xl border border-border p-6">
     <h3 class="font-semibold flex items-center gap-2"><i data-lucide="sun" class="h-4 w-4 text-primary"></i> Appearance</h3>
-    <p class="text-sm text-muted-foreground mb-4">Choose how Lisa looks for you</p>
+    <p class="text-sm text-muted-foreground mb-4">Choose how Learning Skills looks for you</p>
     <div class="grid grid-cols-2 gap-3">
       <button onclick="setTheme('light')" id="lightCard" class="theme-card p-4 rounded-2xl border-2 border-border hover:border-primary/40 transition-all">
         <div class="h-20 rounded-xl bg-white border border-border mb-3 grid place-items-center"><i data-lucide="sun" class="h-6 w-6 text-gray-900"></i></div>

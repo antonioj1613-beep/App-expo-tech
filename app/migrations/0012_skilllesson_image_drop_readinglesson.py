@@ -10,13 +10,13 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='userreadinglessoncompletion',
-            name='lesson',
-        ),
         migrations.AlterUniqueTogether(
             name='userreadinglessoncompletion',
             unique_together=None,
+        ),
+        migrations.RemoveField(
+            model_name='userreadinglessoncompletion',
+            name='lesson',
         ),
         migrations.RemoveField(
             model_name='userreadinglessoncompletion',

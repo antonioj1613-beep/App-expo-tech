@@ -13,22 +13,64 @@
 {% block scripts %}
 {% if not is_new_user %}
 <script>
-  const COLORS = ["rgb(182 112 255)", "rgb(0 160 255)", "rgb(247 112 239)", "rgb(0 198 213)"];
-  const purple = "rgb(176 105 255)";
-  const tick = "rgb(156 157 174)";
-  const grid = "rgba(120,120,140,0.15)";
-  const base = { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { color: tick } }, y: { grid: { color: grid }, ticks: { color: tick } } } };
+  (function () {
+    const monthlyLabels = {{ monthly_labels|safe }};
+    const monthlyData = {{ monthly_data|safe }};
+    const pieLabels = {{ pie_labels|safe }};
+    const pieData = {{ pie_data|safe }};
+    const skillLabels = {{ skill_labels|safe }};
+    const skillData = {{ skill_data|safe }};
+    const accLabels = {{ acc_labels|safe }};
+    const accData = {{ acc_data|safe }};
 
-  const xc = document.getElementById("xpTime").getContext("2d");
-  const g = xc.createLinearGradient(0, 0, 0, 260);
-  g.addColorStop(0, "rgba(176,105,255,0.5)"); g.addColorStop(1, "rgba(176,105,255,0)");
-  new Chart(xc, { type: "line", data: { labels: {{ monthly_labels|safe }}, datasets: [{ data: {{ monthly_data|safe }}, borderColor: purple, backgroundColor: g, borderWidth: 2.5, fill: true, tension: 0.4, pointRadius: 0 }] }, options: base });
+    const xpCanvas = document.getElementById("xpTime");
+    const pieCanvas = document.getElementById("pie");
+    const barsCanvas = document.getElementById("bars");
+    const accCanvas = document.getElementById("acc");
+    let xpChart, pieChart, barsChart, accChart;
 
-  new Chart(document.getElementById("pie"), { type: "doughnut", data: { labels: {{ pie_labels|safe }}, datasets: [{ data: {{ pie_data|safe }}, backgroundColor: COLORS, borderWidth: 2, borderColor: "rgb(13 14 28)" }] }, options: { cutout: "62%", plugins: { legend: { position: "bottom", labels: { color: tick, boxWidth: 10 } } } } });
+    function draw() {
+      const theme = chartTheme();
+      const base = chartBaseOptions(theme);
 
-  new Chart(document.getElementById("bars"), { type: "bar", data: { labels: {{ skill_labels|safe }}, datasets: [{ data: {{ skill_data|safe }}, backgroundColor: COLORS, borderRadius: 8 }] }, options: base });
+      const xpDataset = {
+        data: monthlyData,
+        borderColor: theme.primary,
+        backgroundColor: chartFillGradient(xpCanvas, theme.primaryChannels, 260),
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: theme.primary,
+      };
+      if (xpChart) { xpChart.data.datasets[0] = xpDataset; xpChart.options = base; xpChart.update(); }
+      else xpChart = new Chart(xpCanvas, { type: "line", data: { labels: monthlyLabels, datasets: [xpDataset] }, options: base });
 
-  new Chart(document.getElementById("acc"), { type: "line", data: { labels: {{ acc_labels|safe }}, datasets: [{ data: {{ acc_data|safe }}, borderColor: purple, borderWidth: 2.5, tension: 0.4, pointRadius: 4, pointBackgroundColor: purple }] }, options: { ...base, scales: { ...base.scales, y: { ...base.scales.y, min: 60, max: 100 } } } });
+      const pieOptions = {
+        cutout: "62%",
+        plugins: {
+          legend: { position: "bottom", labels: { color: theme.tick, boxWidth: 10, font: { family: "Inter, system-ui, sans-serif", size: 11 } } },
+          tooltip: base.plugins.tooltip,
+        },
+      };
+      const pieDataset = { data: pieData, backgroundColor: theme.series, borderWidth: 2, borderColor: theme.tooltipBg, hoverOffset: 6 };
+      if (pieChart) { pieChart.data.datasets[0] = pieDataset; pieChart.options = pieOptions; pieChart.update(); }
+      else pieChart = new Chart(pieCanvas, { type: "doughnut", data: { labels: pieLabels, datasets: [pieDataset] }, options: pieOptions });
+
+      const barsDataset = { data: skillData, backgroundColor: theme.series, borderRadius: 8, maxBarThickness: 40 };
+      if (barsChart) { barsChart.data.datasets[0] = barsDataset; barsChart.options = base; barsChart.update(); }
+      else barsChart = new Chart(barsCanvas, { type: "bar", data: { labels: skillLabels, datasets: [barsDataset] }, options: base });
+
+      const accOptions = { ...base, scales: { ...base.scales, y: { ...base.scales.y, min: 60, max: 100 } } };
+      const accDataset = { data: accData, borderColor: theme.primary, borderWidth: 2.5, tension: 0.4, pointRadius: 4, pointBackgroundColor: theme.primary, pointHoverRadius: 6 };
+      if (accChart) { accChart.data.datasets[0] = accDataset; accChart.options = accOptions; accChart.update(); }
+      else accChart = new Chart(accCanvas, { type: "line", data: { labels: accLabels, datasets: [accDataset] }, options: accOptions });
+    }
+
+    draw();
+    window.lisaCharts.push(draw);
+  })();
 </script>
 {% endif %}
 {% endblock %}

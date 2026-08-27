@@ -1,5 +1,5 @@
 /* =====================================================================
-   Lisa — design tokens & custom utilities (port of src/styles.css)
+   Learning Skills — design tokens & custom utilities (port of src/styles.css)
    Purple neon futuristic identity, glassmorphism, premium shadows.
    ===================================================================== */
 
@@ -140,6 +140,36 @@ body {
   background-size: 48px 48px;
 }
 
+/* ---- Card hover lift (generic — dashboard/statistics/progress panels) ---- */
+.card-interactive {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.card-interactive:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-soft);
+  border-color: rgb(var(--primary) / 0.3);
+}
+
+/* ---- Slow background drift for hero mesh gradients (landing only) ---- */
+@keyframes gradient-drift {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 3% 4%; }
+}
+.gradient-drift { animation: gradient-drift 18s ease-in-out infinite; }
+
+/* ---- Landing header: opacity/blur once the page scrolls (navbar-scroll.js) ---- */
+[data-scroll-header] {
+  transition: background-color 0.25s ease, backdrop-filter 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  border-bottom: 1px solid transparent;
+}
+[data-scroll-header].is-scrolled {
+  background: color-mix(in oklab, rgb(var(--background)) 75%, transparent);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border-bottom-color: rgb(var(--border));
+  box-shadow: var(--shadow-soft);
+}
+
 /* ---- Button system (ports the shadcn variants used in the app) ---- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -148,6 +178,7 @@ body {
   height: 2.5rem; padding: 0 1rem; line-height: 1;
 }
 .btn:disabled { opacity: 0.5; pointer-events: none; }
+.btn:not(:disabled):active { transform: scale(0.97); }
 .btn-hero {
   background: var(--gradient-primary); color: rgb(var(--primary-foreground));
   box-shadow: var(--shadow-glow);
@@ -487,4 +518,6 @@ textarea.field { padding: 0.75rem; height: auto; resize: none; line-height: 1.6;
     opacity: 1;
     transform: none;
   }
+  .gradient-drift { animation: none; }
+  .card-interactive:hover { transform: none; }
 }

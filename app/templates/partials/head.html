@@ -82,6 +82,7 @@
 </script>
 <link rel="stylesheet" href="{% static 'app/theme.css' %}" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'app/chart-theme.js' %}"></script>
 <script>
   // Theme persistence (light / dark) — matches the original toggle behaviour.
   (function () {
@@ -93,12 +94,14 @@
     var el = document.documentElement;
     el.classList.toggle("dark");
     localStorage.setItem("lisa-theme", el.classList.contains("dark") ? "dark" : "light");
+    window.dispatchEvent(new CustomEvent("lisa:theme-changed"));
   }
   function setTheme(mode) {
     var el = document.documentElement;
     if (mode === "dark") el.classList.add("dark");
     else el.classList.remove("dark");
     localStorage.setItem("lisa-theme", mode);
+    window.dispatchEvent(new CustomEvent("lisa:theme-changed"));
   }
   window.addEventListener("DOMContentLoaded", function () {
     if (window.lucide) lucide.createIcons();

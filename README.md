@@ -5,7 +5,7 @@ Aplicación web para practicar inglés: escucha, lectura, escritura, vocabulario
 ## Inicio rápido (un solo comando)
 
 ```powershell
-cd App-expo-tech
+cd Learning-Skills
 .\start.ps1
 ```
 
@@ -69,7 +69,7 @@ Usa **Chrome o Edge** en la página de Speaking (grabación y transcripción de 
 ## Estructura del proyecto
 
 ```
-App-expo-tech/
+Learning-Skills/
 ├── start.ps1                 ← ejecutar esto
 ├── dev.ps1                   ← alias de start.ps1
 ├── requirements.txt
@@ -98,7 +98,7 @@ Para guardar manualmente en cualquier momento:
 .\scripts\save-to-github.ps1
 ```
 
-Repositorio: [App-expo-tech](https://github.com/antonioj1613-beep/App-expo-tech)
+Repositorio: [App-expo-tech](https://github.com/antonioj1613-beep/App-expo-tech) *(nombre del repo en GitHub pendiente de renombrar a Learning-Skills)*
 
 ## Despliegue
 
