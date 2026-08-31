@@ -1,7 +1,7 @@
 """Writing practice — lesson page and submit API.
 
 Submit-time scoring calls writing_feedback.grade_writing_submission() for a
-real AI rubric score, error extraction, and recommendations. On any Ollama
+real AI rubric score, error extraction, and recommendations. On any Gemini
 failure or timeout, this falls back to the original word-count heuristic
 below — kept deliberately, not deleted, matching Speaking's
 _fallback_reply() precedent for graceful degradation.
