@@ -157,6 +157,55 @@ body {
 }
 .gradient-drift { animation: gradient-drift 18s ease-in-out infinite; }
 
+/* ---- Landing hero: fixed CSS-3D shape background (landing only) ----
+   The whole layer is position:fixed so it stays put behind the scrolling
+   content — no scroll listeners, no WebGL, GPU-composited transforms only. */
+.hero-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-shape-wrap {
+  position: absolute;
+}
+.hero-shape {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 14px 26px oklch(0.08 0.04 280 / 0.4));
+}
+.hero-shape--cross {
+  clip-path: polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%);
+  background:
+    radial-gradient(circle at 26% 20%, rgb(255 255 255 / 0.6) 0%, transparent 36%),
+    linear-gradient(155deg, var(--shape-a) 0%, var(--shape-b) 100%);
+  box-shadow: inset 0 2px 3px rgb(255 255 255 / 0.3), inset 0 -8px 12px rgb(0 0 0 / 0.3);
+  transform: perspective(500px) rotateX(32deg) rotateY(-26deg);
+}
+.hero-shape--sphere {
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 26%, rgb(255 255 255 / 0.85) 0%, transparent 40%),
+    radial-gradient(circle at 70% 76%, var(--shape-b) 0%, transparent 65%),
+    linear-gradient(160deg, var(--shape-a) 0%, var(--shape-b) 100%);
+}
+.hero-shape--triangle {
+  transform-origin: center;
+  animation: hero-shape-spin var(--spin-duration, 38s) linear infinite;
+}
+.hero-float-a { animation: hero-shape-bob 7.5s ease-in-out infinite; }
+.hero-float-b { animation: hero-shape-bob 9s ease-in-out infinite; animation-delay: 2.2s; }
+.hero-float-c { animation: hero-shape-bob 6.5s ease-in-out infinite; animation-delay: 1s; }
+@keyframes hero-shape-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-16px); }
+}
+@keyframes hero-shape-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 /* ---- Landing header: opacity/blur once the page scrolls (navbar-scroll.js) ---- */
 [data-scroll-header] {
   transition: background-color 0.25s ease, backdrop-filter 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
@@ -382,6 +431,9 @@ textarea.field { padding: 0.75rem; height: auto; resize: none; line-height: 1.6;
   filter: brightness(1.08);
   transform: scale(1.04);
 }
+.speaking-record-btn:not(:disabled):active {
+  transform: scale(0.97);
+}
 .speaking-record-btn.is-recording {
   background: color-mix(in oklab, rgb(var(--destructive)) 70%, rgb(var(--primary)));
   animation: speaking-pulse 1.2s ease-in-out infinite;
@@ -460,11 +512,14 @@ textarea.field { padding: 0.75rem; height: auto; resize: none; line-height: 1.6;
   color: hsl(var(--muted-foreground));
   font-size: 0.875rem;
   font-weight: 600;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  transition: border-color 0.15s, color 0.15s, background 0.15s, transform 0.15s;
 }
 .speaking-character-btn:hover:not(:disabled) {
   border-color: hsl(var(--primary) / 0.5);
   color: hsl(var(--foreground));
+}
+.speaking-character-btn:not(:disabled):active {
+  transform: scale(0.97);
 }
 .speaking-character-btn.is-selected {
   border-color: hsl(var(--primary));
@@ -520,4 +575,5 @@ textarea.field { padding: 0.75rem; height: auto; resize: none; line-height: 1.6;
   }
   .gradient-drift { animation: none; }
   .card-interactive:hover { transform: none; }
+  .hero-float-a, .hero-float-b, .hero-float-c, .hero-shape--triangle { animation: none; }
 }
