@@ -7,29 +7,27 @@
   <div class="absolute inset-0 grid-bg opacity-40"></div>
 
   <div class="hero-shape-wrap" style="top:9%; left:6%; width:4.5rem; height:4.5rem; opacity:.75;">
-    <div class="hero-shape hero-shape--cross" style="--shape-a: rgb(var(--chart-4)); --shape-b: rgb(var(--chart-1));"></div>
+    <model-viewer class="hero-shape" src="{% static 'app/models/herocross.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-4));"></model-viewer>
   </div>
 
   <div class="hero-shape-wrap hero-float-a" style="top:13%; right:8%; width:6rem; height:6rem; opacity:.8;">
-    <div class="hero-shape hero-shape--sphere" style="--shape-a: rgb(var(--chart-4)); --shape-b: rgb(var(--chart-1));"></div>
+    <model-viewer class="hero-shape" src="{% static 'app/models/herosphere.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-4));"></model-viewer>
   </div>
 
   <div class="hero-shape-wrap hero-float-b hidden sm:block" style="bottom:10%; right:11%; width:3.75rem; height:3.75rem; opacity:.6;">
-    <div class="hero-shape hero-shape--cross" style="--shape-a: rgb(var(--chart-1)); --shape-b: rgb(var(--chart-5));"></div>
+    <model-viewer class="hero-shape" src="{% static 'app/models/herocross.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-1));"></model-viewer>
   </div>
 
   <div class="hero-shape-wrap" style="bottom:15%; left:7%; width:3.25rem; height:3.25rem; opacity:.65;">
-    <div class="hero-shape hero-shape--sphere" style="--shape-a: rgb(var(--chart-3)); --shape-b: rgb(var(--chart-2));"></div>
+    <model-viewer class="hero-shape" src="{% static 'app/models/herosphere.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-3));"></model-viewer>
   </div>
 
   <div class="hero-shape-wrap hero-float-c hidden sm:block" style="top:46%; left:3%; width:2.25rem; height:2.25rem; opacity:.55;">
-    <div class="hero-shape hero-shape--sphere" style="--shape-a: rgb(var(--chart-5)); --shape-b: rgb(var(--chart-2));"></div>
+    <model-viewer class="hero-shape" src="{% static 'app/models/herosphere.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-5));"></model-viewer>
   </div>
 
   <div class="hero-shape-wrap" style="top:18%; right:20%; width:4.5rem; height:4.5rem; opacity:.6;">
-    <svg viewBox="0 0 100 90" class="hero-shape hero-shape--triangle" style="overflow:visible;">
-      <polygon points="50,6 94,84 6,84" fill="none" stroke="rgb(var(--chart-3))" stroke-width="5" stroke-linejoin="round" />
-    </svg>
+    <model-viewer class="hero-shape" src="{% static 'app/models/herotriangle.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-3));"></model-viewer>
   </div>
 </div>
 
@@ -187,6 +185,6 @@
 </div>
 {% endblock %}
 {% block scripts %}
+<script type="module" src="https://unpkg.com/@google/model-viewer@4.3.1/dist/model-viewer.min.js"></script>
 <script src="{% static 'app/scroll-reveal.js' %}" defer></script>
-<script src="{% static 'app/navbar-scroll.js' %}" defer></script>
 {% endblock %}
