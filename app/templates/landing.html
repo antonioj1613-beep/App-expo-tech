@@ -6,52 +6,54 @@
   <div class="absolute inset-0 bg-gradient-mesh gradient-drift opacity-80"></div>
   <div class="absolute inset-0 grid-bg opacity-40"></div>
 
-  <div class="hero-shape-wrap" style="top:9%; left:6%; width:4.5rem; height:4.5rem; opacity:.75;">
+  <div class="hero-shape-wrap hero-spin-cw" style="top:11%; left:10%; width:4.5rem; height:4.5rem; opacity:.75;">
     <model-viewer class="hero-shape" src="{% static 'app/models/herocross.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-4));"></model-viewer>
   </div>
 
-  <div class="hero-shape-wrap hero-float-a" style="top:13%; right:8%; width:6rem; height:6rem; opacity:.8;">
+  <div class="hero-shape-wrap hero-float-a" style="top:15%; right:12%; width:6rem; height:6rem; opacity:.8;">
     <model-viewer class="hero-shape" src="{% static 'app/models/herosphere.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-4));"></model-viewer>
   </div>
 
-  <div class="hero-shape-wrap hero-float-b hidden sm:block" style="bottom:10%; right:11%; width:3.75rem; height:3.75rem; opacity:.6;">
+  <div class="hero-shape-wrap hero-float-b hidden sm:block" style="bottom:13%; right:15%; width:3.75rem; height:3.75rem; opacity:.6;">
     <model-viewer class="hero-shape" src="{% static 'app/models/herocross.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-1));"></model-viewer>
   </div>
 
-  <div class="hero-shape-wrap" style="bottom:15%; left:7%; width:3.25rem; height:3.25rem; opacity:.65;">
+  <div class="hero-shape-wrap hero-spin-ccw" style="bottom:17%; left:11%; width:3.25rem; height:3.25rem; opacity:.65;">
     <model-viewer class="hero-shape" src="{% static 'app/models/herosphere.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-3));"></model-viewer>
   </div>
 
-  <div class="hero-shape-wrap hero-float-c hidden sm:block" style="top:46%; left:3%; width:2.25rem; height:2.25rem; opacity:.55;">
+  <div class="hero-shape-wrap hero-float-c hidden sm:block" style="top:46%; left:8%; width:2.25rem; height:2.25rem; opacity:.55;">
     <model-viewer class="hero-shape" src="{% static 'app/models/herosphere.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-5));"></model-viewer>
   </div>
 
-  <div class="hero-shape-wrap" style="top:18%; right:20%; width:4.5rem; height:4.5rem; opacity:.6;">
+  <div class="hero-shape-wrap hero-sway" style="top:20%; right:24%; width:4.5rem; height:4.5rem; opacity:.6;">
     <model-viewer class="hero-shape" src="{% static 'app/models/herotriangle.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-3));"></model-viewer>
   </div>
 </div>
 
-<header data-scroll-header class="fade-in sticky top-0 z-20 max-w-7xl mx-auto px-6 lg:px-8 py-6 flex items-center justify-between">
-  <a href="{% url 'landing' %}" class="flex items-center gap-2.5">
-    {% include "partials/logo.html" %}
-    <span class="font-display font-bold text-lg tracking-tight">Learning Skills</span>
-  </a>
-  <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-    <a href="#about" class="hover:text-foreground transition">About</a>
-    <a href="#tools" class="hover:text-foreground transition">Tools</a>
-    <a href="#features" class="hover:text-foreground transition">Features</a>
-    <a href="#lisa" class="hover:text-foreground transition">Lisa</a>
-  </nav>
-  <div class="flex items-center gap-2">
-    <button onclick="toggleTheme()" class="btn btn-ghost btn-icon rounded-full"><i data-lucide="sun-moon" class="h-[18px] w-[18px]"></i></button>
-    <a href="{% url 'login' %}" class="btn btn-ghost hidden sm:inline-flex">Sign in</a>
-    <a href="{% url 'login' %}" class="btn btn-hero">Get started <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
+<header data-scroll-header class="fade-in sticky top-0 z-20 w-full">
+  <div class="max-w-[100rem] mx-auto px-6 lg:px-8 py-6 flex items-center justify-between">
+    <a href="{% url 'landing' %}" class="flex items-center gap-2.5">
+      {% include "partials/logo.html" %}
+      <span class="font-display font-bold text-lg tracking-tight">Learning Skills</span>
+    </a>
+    <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+      <a href="#about" class="hover:text-foreground transition">About</a>
+      <a href="#tools" class="hover:text-foreground transition">Tools</a>
+      <a href="#features" class="hover:text-foreground transition">Features</a>
+      <a href="#lisa" class="hover:text-foreground transition">Lisa</a>
+    </nav>
+    <div class="flex items-center gap-2">
+      <button onclick="toggleTheme()" class="btn btn-ghost btn-icon rounded-full"><i data-lucide="sun-moon" class="h-[18px] w-[18px]"></i></button>
+      <a href="{% url 'login' %}" class="btn btn-ghost hidden sm:inline-flex">Sign in</a>
+      <a href="{% url 'login' %}" class="btn btn-hero">Get started <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
+    </div>
   </div>
 </header>
 
 <div class="min-h-screen bg-background text-foreground relative overflow-hidden">
   <!-- Hero: Learning Skills -->
-  <section class="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 pt-16 pb-20 text-center">
+  <section class="relative z-10 max-w-[100rem] mx-auto px-6 lg:px-8 pt-16 pb-20 text-center">
     <div class="fade-in inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs font-medium mb-8">
       <span class="h-1.5 w-1.5 rounded-full bg-gradient-primary animate-glow-pulse"></span>
       Your complete English learning platform
@@ -69,7 +71,7 @@
   </section>
 
   <!-- About: what Learning Skills is -->
-  <section id="about" class="landing-section relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-20">
+  <section id="about" class="landing-section relative z-10 max-w-[100rem] mx-auto px-6 lg:px-8 py-20">
     <div class="fade-in text-center mb-14">
       <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-3">What is Learning Skills?</p>
       <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Built for real progress.</h2>
@@ -89,7 +91,7 @@
   </section>
 
   <!-- Tools: everything in the app -->
-  <section id="tools" class="landing-section relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-20">
+  <section id="tools" class="landing-section relative z-10 max-w-[100rem] mx-auto px-6 lg:px-8 py-20">
     <div class="fade-in text-center mb-14">
       <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-3">Inside the app</p>
       <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Every tool you need.</h2>
@@ -116,7 +118,7 @@
   </section>
 
   <!-- Features: platform capabilities -->
-  <section id="features" class="landing-section relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-20">
+  <section id="features" class="landing-section relative z-10 max-w-[100rem] mx-auto px-6 lg:px-8 py-20">
     <div class="fade-in text-center mb-14">
       <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-3">Platform features</p>
       <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Built for serious learners.</h2>
@@ -133,7 +135,7 @@
   </section>
 
   <!-- Lisa: the big surprise -->
-  <section id="lisa" class="landing-section relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-20">
+  <section id="lisa" class="landing-section relative z-10 max-w-[100rem] mx-auto px-6 lg:px-8 py-20">
     <div class="fade-in glass-strong rounded-3xl p-10 md:p-16 shadow-elegant relative overflow-hidden">
       <div class="absolute inset-0 bg-gradient-glow opacity-50 pointer-events-none"></div>
       <div class="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>

@@ -201,6 +201,26 @@ body {
   50% { transform: translateY(-16px); }
 }
 
+/* Rotate/sway variants -- CSS transform on the wrapper only, same
+   GPU-composited, zero-WebGL-cost category as the bob animation above.
+   Gives the hero background a mix of motion (bob / spin / sway) instead of
+   every shape moving the same way. */
+.hero-spin-cw { animation: hero-shape-spin-cw 42s linear infinite; }
+.hero-spin-ccw { animation: hero-shape-spin-ccw 58s linear infinite; }
+.hero-sway { animation: hero-shape-sway 8s ease-in-out infinite; }
+@keyframes hero-shape-spin-cw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes hero-shape-spin-ccw {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+@keyframes hero-shape-sway {
+  0%, 100% { transform: rotate(-14deg); }
+  50% { transform: rotate(14deg); }
+}
+
 /* ---- Landing header: always-on glassmorphism bar ---- */
 [data-scroll-header] {
   background: color-mix(in oklab, rgb(var(--background)) 75%, transparent);
@@ -566,5 +586,5 @@ textarea.field { padding: 0.75rem; height: auto; resize: none; line-height: 1.6;
   }
   .gradient-drift { animation: none; }
   .card-interactive:hover { transform: none; }
-  .hero-float-a, .hero-float-b, .hero-float-c { animation: none; }
+  .hero-float-a, .hero-float-b, .hero-float-c, .hero-spin-cw, .hero-spin-ccw, .hero-sway { animation: none; }
 }
