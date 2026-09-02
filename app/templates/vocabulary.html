@@ -34,9 +34,14 @@
           <h3 class="font-display text-2xl font-bold tracking-tight">{{ vocab_word }}</h3>
           {% if vocab_ipa %}<p class="text-xs text-muted-foreground font-mono mt-0.5">{{ vocab_ipa }}</p>{% endif %}
         </div>
-        {% if vocab_cefr %}
-        <span class="text-[10px] bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full">{{ vocab_cefr }}</span>
-        {% endif %}
+        <div class="flex flex-col items-end gap-1.5">
+          {% if vocab_cefr %}
+          <span class="text-[10px] bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full">{{ vocab_cefr }}</span>
+          {% endif %}
+          {% if times_practiced %}
+          <p class="text-[11px] text-muted-foreground flex items-center gap-1"><i data-lucide="repeat" class="h-3 w-3"></i> {{ times_practiced }}</p>
+          {% endif %}
+        </div>
       </div>
       <p class="text-sm text-foreground/90 mt-3">{{ vocab_meaning }}</p>
       {% if vocab_example %}

@@ -15,6 +15,7 @@ from __future__ import annotations
 from datetime import timedelta
 from decimal import Decimal
 
+from django.db.models import F
 from django.utils import timezone
 
 from .gamification import VOCABULARY_MASTERY_REPETITIONS, apply_sm2_review, compute_vocab_review_xp
@@ -87,6 +88,8 @@ def submit_vocabulary_review(user: User, lesson_id: int, correct: bool) -> dict:
         lesson = SkillLesson.objects.get(pk=lesson_id, skill__slug=SKILL_SLUG)
     except SkillLesson.DoesNotExist:
         return {"error": "Word not found.", "status": 404}
+
+    SkillLesson.objects.filter(pk=lesson.pk).update(times_practiced=F("times_practiced") + 1)
 
     state, is_first_review = UserVocabularyReviewState.objects.get_or_create(user=user, lesson=lesson)
 

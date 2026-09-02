@@ -2,6 +2,7 @@ from django.urls import path
 from django.views.generic import RedirectView
 
 from . import views
+from . import exam_views
 from . import reading_views
 from . import listening_views
 from . import speaking_views
@@ -34,8 +35,13 @@ urlpatterns = [
     path("speaking/api/chat/", speaking_views.speaking_chat, name="speaking_chat"),
     path("speaking/api/transcribe/", speaking_views.speaking_transcribe, name="speaking_transcribe"),
     path("speaking/api/end/", speaking_views.speaking_end, name="speaking_end"),
+    path("exams/", exam_views.exams, name="exams"),
+    path("exams/<slug:slug>/", exam_views.exam_take, name="exam_take"),
+    path("exams/api/<int:attempt_id>/submit/", exam_views.exam_submit, name="exam_submit"),
+    path("exams/results/<int:attempt_id>/", exam_views.exam_results, name="exam_results"),
     path("progress/", views.progress, name="progress"),
     path("statistics/", views.statistics, name="statistics"),
+    path("leaderboard/", views.leaderboard, name="leaderboard"),
     path("profile/", views.profile, name="profile"),
     path("notifications/", views.notifications, name="notifications"),
     path("settings/", views.settings_view, name="settings"),

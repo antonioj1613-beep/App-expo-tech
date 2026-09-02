@@ -1,0 +1,41 @@
+{% extends "base_app.html" %}
+{% block title %}Mock Exams — Learning Skills{% endblock %}
+{% block main %}
+{% include "partials/header.html" with title="Mock Exams" subtitle="Full timed TOEIC-style practice tests" %}
+<main class="flex-1 p-4 md:p-8">
+  <div class="max-w-3xl mx-auto space-y-4">
+    {% if not exam_list %}
+    <div class="glass rounded-2xl p-8 text-center">
+      <div class="h-14 w-14 rounded-2xl bg-primary/15 text-primary grid place-items-center mx-auto mb-4">
+        <i data-lucide="clipboard-list" class="h-7 w-7"></i>
+      </div>
+      <h2 class="font-display text-xl font-bold">No exams available yet</h2>
+      <p class="text-sm text-muted-foreground mt-2">Check back soon.</p>
+    </div>
+    {% else %}
+    {% for entry in exam_list %}
+    <div class="glass rounded-2xl p-6 flex items-center gap-5">
+      <div class="h-12 w-12 shrink-0 rounded-xl bg-gradient-primary grid place-items-center shadow-glow">
+        <i data-lucide="clipboard-list" class="h-6 w-6 text-primary-foreground"></i>
+      </div>
+      <div class="min-w-0 flex-1">
+        <h3 class="font-display text-lg font-semibold">{{ entry.exam.title }}</h3>
+        {% if entry.exam.description %}<p class="text-sm text-muted-foreground mt-1">{{ entry.exam.description }}</p>{% endif %}
+        <div class="flex flex-wrap items-center gap-3 mt-2 text-[11px] text-muted-foreground">
+          <span class="inline-flex items-center gap-1"><i data-lucide="list" class="h-3 w-3"></i> {{ entry.question_count }} questions</span>
+          <span class="inline-flex items-center gap-1"><i data-lucide="clock" class="h-3 w-3"></i> {{ entry.exam.time_limit_minutes }} minutes</span>
+          <span class="inline-flex items-center gap-1"><i data-lucide="users" class="h-3 w-3"></i> {{ entry.attempt_count }} attempt{{ entry.attempt_count|pluralize }}</span>
+          {% if entry.your_best_score is not None %}
+          <span class="inline-flex items-center gap-1 text-primary font-medium"><i data-lucide="star" class="h-3 w-3"></i> Your best: {{ entry.your_best_score }}%</span>
+          {% endif %}
+        </div>
+      </div>
+      <a href="{% url 'exam_take' entry.exam.slug %}" class="btn btn-hero shrink-0">
+        {% if entry.your_best_score is not None %}Retake{% else %}Start{% endif %} <i data-lucide="arrow-right" class="h-4 w-4"></i>
+      </a>
+    </div>
+    {% endfor %}
+    {% endif %}
+  </div>
+</main>
+{% endblock %}

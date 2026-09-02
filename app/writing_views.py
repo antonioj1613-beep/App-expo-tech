@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from django.db.models import F
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
@@ -103,6 +104,8 @@ def writing_submit(request):
             {"error": f"Write at least {lesson.min_words} words (you wrote {word_count})."},
             status=400,
         )
+
+    SkillLesson.objects.filter(pk=lesson.pk).update(times_practiced=F("times_practiced") + 1)
 
     already = UserSkillLessonCompletion.objects.filter(user=user, lesson=lesson).exists()
 

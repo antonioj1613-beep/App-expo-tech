@@ -47,10 +47,17 @@ def navigation(request):
                 "items": learn_items,
             },
             {
+                "label": "Practice",
+                "items": [
+                    {"name": "exams", "title": "Mock Exams", "icon": "clipboard-list"},
+                ],
+            },
+            {
                 "label": "Insights",
                 "items": [
                     {"name": "progress", "title": "Progress", "icon": "trending-up"},
                     {"name": "statistics", "title": "Statistics", "icon": "bar-chart-3"},
+                    {"name": "leaderboard", "title": "Leaderboard", "icon": "trophy"},
                 ],
             },
         ]

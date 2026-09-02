@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from django.db.models import F
+
 from .gamification import compute_quiz_accuracy, compute_quiz_lesson_xp
 from .models import STAFF_SKILL_SLUGS, SkillLesson, User, UserSkillLessonCompletion
 from .stats_service import build_skill_context, ensure_user_skill_progress, get_skill_progress_row, record_practice_session
@@ -75,6 +77,7 @@ def build_lesson_context(lesson: SkillLesson, user: User, skill_slug: str) -> di
         "level": lesson.level,
         "image_url": lesson.image_url,
         "image_credit": lesson.image_credit,
+        "times_practiced": lesson.times_practiced,
     }
 
     if skill_slug in QUIZ_SKILL_SLUGS:
@@ -85,6 +88,8 @@ def build_lesson_context(lesson: SkillLesson, user: User, skill_slug: str) -> di
                 "options": lesson.options,
             }
         )
+        if skill_slug == "listening":
+            ctx["video_url"] = lesson.video_url
     elif skill_slug == "writing":
         ctx.update(
             {
@@ -125,6 +130,8 @@ def submit_quiz_answer(user: User, skill_slug: str, lesson_id: int, selected_ind
 
     if selected_index < 0 or selected_index >= len(lesson.options):
         return {"error": "Invalid answer selection.", "status": 400}
+
+    SkillLesson.objects.filter(pk=lesson.pk).update(times_practiced=F("times_practiced") + 1)
 
     was_correct = selected_index == lesson.correct_index
     already = UserSkillLessonCompletion.objects.filter(user=user, lesson=lesson).exists()

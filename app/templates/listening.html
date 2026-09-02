@@ -9,7 +9,11 @@
   {% else %}
   <div class="grid lg:grid-cols-[1fr_360px] gap-6 max-w-6xl mx-auto">
     <div class="glass rounded-2xl overflow-hidden">
-      {% if image_url %}
+      {% if video_url %}
+      <div class="relative aspect-video bg-secondary/40">
+        <iframe src="{{ video_url }}" class="absolute inset-0 h-full w-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+      {% elif image_url %}
       <div class="relative aspect-video bg-secondary/40">
         <img src="{{ image_url }}" alt="" class="absolute inset-0 h-full w-full object-cover">
         {% if passage %}
@@ -28,7 +32,12 @@
       </div>
       {% endif %}
       <div class="p-5">
-        <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-2">{{ lesson_title }}</p>
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <p class="text-xs uppercase tracking-widest text-primary font-semibold">{{ lesson_title }}</p>
+          {% if times_practiced %}
+          <p class="text-[11px] text-muted-foreground shrink-0 flex items-center gap-1"><i data-lucide="headphones" class="h-3 w-3"></i> {{ times_practiced }} practiced</p>
+          {% endif %}
+        </div>
         {% if passage %}
         <p id="listeningPassageText" class="text-sm text-muted-foreground leading-relaxed">{{ passage }}</p>
         {% else %}

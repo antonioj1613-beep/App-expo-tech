@@ -1,0 +1,61 @@
+{% extends "base_app.html" %}
+{% block title %}Leaderboard — Learning Skills{% endblock %}
+{% block main %}
+{% include "partials/header.html" with title="Leaderboard" subtitle="See how your total XP stacks up against everyone else" %}
+<main class="flex-1 p-4 md:p-8">
+  <div class="max-w-3xl mx-auto space-y-4">
+    {% if not rows %}
+    <div class="glass rounded-2xl p-8 text-center">
+      <div class="h-14 w-14 rounded-2xl bg-primary/15 text-primary grid place-items-center mx-auto mb-4">
+        <i data-lucide="trophy" class="h-7 w-7"></i>
+      </div>
+      <h2 class="font-display text-xl font-bold">No rankings yet</h2>
+      <p class="text-sm text-muted-foreground mt-2">Earn some XP and be the first name on the board.</p>
+    </div>
+    {% else %}
+    <div class="glass rounded-2xl overflow-hidden">
+      <div class="divide-y divide-border">
+        {% for row in rows %}
+        <div class="flex items-center gap-4 px-5 py-3.5 {% if row.is_you %}bg-primary/10{% endif %}">
+          <div class="h-8 w-8 shrink-0 rounded-lg grid place-items-center text-sm font-bold
+            {% if row.rank == 1 %}bg-gradient-primary text-primary-foreground shadow-glow
+            {% elif row.rank == 2 %}bg-secondary text-secondary-foreground
+            {% elif row.rank == 3 %}bg-secondary/70 text-secondary-foreground
+            {% else %}text-muted-foreground{% endif %}">
+            {% if row.rank <= 3 %}<i data-lucide="trophy" class="h-4 w-4"></i>{% else %}{{ row.rank }}{% endif %}
+          </div>
+          <div class="h-9 w-9 shrink-0 rounded-full bg-gradient-primary grid place-items-center text-primary-foreground text-xs font-semibold">
+            {{ row.username|slice:":2"|upper }}
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-semibold truncate">{{ row.username }}{% if row.is_you %} <span class="text-primary font-normal">(you)</span>{% endif %}</p>
+            {% if row.streak_days %}
+            <p class="text-[11px] text-muted-foreground flex items-center gap-1"><i data-lucide="flame" class="h-3 w-3 text-warning"></i> {{ row.streak_days }} day streak</p>
+            {% endif %}
+          </div>
+          <p class="text-sm font-bold text-gradient shrink-0">{{ row.total_xp }} XP</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if your_row and your_row.rank > rows|length %}
+    <div class="glass rounded-2xl overflow-hidden border border-primary/30">
+      <div class="flex items-center gap-4 px-5 py-3.5 bg-primary/10">
+        <div class="h-8 w-8 shrink-0 rounded-lg grid place-items-center text-sm font-bold text-muted-foreground">{{ your_row.rank }}</div>
+        <div class="h-9 w-9 shrink-0 rounded-full bg-gradient-primary grid place-items-center text-primary-foreground text-xs font-semibold">
+          {{ your_row.username|slice:":2"|upper }}
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-semibold truncate">{{ your_row.username }} <span class="text-primary font-normal">(you)</span></p>
+        </div>
+        <p class="text-sm font-bold text-gradient shrink-0">{{ your_row.total_xp }} XP</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <p class="text-center text-xs text-muted-foreground">{{ total_ranked }} learner{{ total_ranked|pluralize }} ranked</p>
+    {% endif %}
+  </div>
+</main>
+{% endblock %}

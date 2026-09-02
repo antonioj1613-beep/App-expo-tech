@@ -665,6 +665,48 @@ def profile_stats_cards(profile: UserProfile) -> list[dict]:
     ]
 
 
+def leaderboard_rows(user: User, limit: int = 50) -> dict:
+    """
+    Global ranking by UserProfile.total_xp -- the only XP figure the app
+    has (there is no derived "level" number anywhere; CEFR level is
+    per-skill, not a points ranking, see gamification.py). Deliberately a
+    read-only aggregate over existing data, no new field/model needed.
+    """
+    profiles = list(
+        UserProfile.objects.select_related("user")
+        .order_by("-total_xp", "user__created_at")
+        .values("user_id", "user__username", "total_xp", "streak_days")
+    )
+
+    rows = [
+        {
+            "rank": i + 1,
+            "user_id": p["user_id"],
+            "username": p["user__username"],
+            "total_xp": p["total_xp"],
+            "streak_days": p["streak_days"],
+            "is_you": p["user_id"] == user.id,
+        }
+        for i, p in enumerate(profiles[:limit])
+    ]
+
+    your_row = next((r for r in rows if r["is_you"]), None)
+    if your_row is None:
+        for i, p in enumerate(profiles):
+            if p["user_id"] == user.id:
+                your_row = {
+                    "rank": i + 1,
+                    "user_id": p["user_id"],
+                    "username": p["user__username"],
+                    "total_xp": p["total_xp"],
+                    "streak_days": p["streak_days"],
+                    "is_you": True,
+                }
+                break
+
+    return {"rows": rows, "your_row": your_row, "total_ranked": len(profiles)}
+
+
 def build_app_user_stats(user: User) -> dict:
     """Sidebar / header learner widget — single source for the derived
     overall CEFR level and XP. Level is now the median of assessed per-skill

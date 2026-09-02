@@ -254,6 +254,17 @@ class SkillLesson(models.Model):
     vocab_example = models.TextField(blank=True)
     vocab_cefr = models.CharField(max_length=4, blank=True, default="B2")
 
+    # Listening: optional real video for this item. YouTube-embed URL, same
+    # URL-string pattern as image_url above (no MEDIA_ROOT, no ephemeral-
+    # storage problem) -- when blank, listening.js's client-side TTS reading
+    # of `passage` is the fallback, same as it is for every item today.
+    video_url = models.URLField(blank=True, help_text="YouTube embed URL for this listening item, if any.")
+
+    # Denormalized "times practiced" counter, incremented on every submit
+    # attempt (not just the first/counted-for-XP one) -- shown to all users
+    # as a popularity signal, same idea as Parroto's per-lesson attempt count.
+    times_practiced = models.PositiveIntegerField(default=0)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -355,3 +366,91 @@ class TutorErrorPattern(models.Model):
 
     def __str__(self):
         return f"{self.user.username} · {self.skill.slug} · {self.get_category_display()} ({self.occurrence_count}x)"
+
+
+class MockExam(models.Model):
+    """
+    A full timed TOEIC-style practice test -- separate from SkillLesson's
+    per-item catalog on purpose: SkillLesson is "one item, walked through
+    sequentially, unique_together(user, lesson) caps it at one completion."
+    An exam is "N items in one timed sitting, retaken freely" -- different
+    enough shape (ordering within an exam, a shared timer/score across many
+    questions, unlimited reattempts) that bolting it onto SkillLesson would
+    fight its existing semantics rather than reuse them.
+
+    Original questions only, TOEIC-format-inspired -- same rule already
+    documented on SkillLesson.image_url: never scraped or copied from real
+    ETS/Cambridge materials.
+    """
+
+    title = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=80, unique=True)
+    description = models.TextField(blank=True)
+    time_limit_minutes = models.PositiveSmallIntegerField(default=25)
+    is_published = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def question_count(self) -> int:
+        return self.questions.count()
+
+
+class MockExamQuestion(models.Model):
+    SECTION_CHOICES = [("listening", "Listening"), ("reading", "Reading")]
+
+    exam = models.ForeignKey(MockExam, on_delete=models.CASCADE, related_name="questions")
+    section = models.CharField(max_length=20, choices=SECTION_CHOICES)
+    order = models.PositiveIntegerField(default=0)
+
+    # Listening: spoken-style transcript, read client-side via the same
+    # speechSynthesis TTS as SkillLesson.passage (see listening.js). Reading:
+    # the passage text itself.
+    passage = models.TextField(blank=True)
+    question_prompt = models.TextField()
+    options = models.JSONField(default=list)
+    correct_index = models.PositiveSmallIntegerField(default=0)
+    explanation = models.TextField(
+        blank=True, help_text="Shown on the results page under this question, right or wrong."
+    )
+
+    image_url = models.URLField(blank=True)
+    image_credit = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        ordering = ["exam", "order", "id"]
+
+    def __str__(self):
+        return f"{self.exam.title} · Q{self.order} · {self.section}"
+
+
+class MockExamAttempt(models.Model):
+    """One timed sitting of a MockExam. Deliberately no unique_together on
+    (user, exam) -- unlike UserSkillLessonCompletion, retaking an exam is
+    the whole point, and `MockExam.objects.filter(...).count()`-style
+    queries over this table are what a per-exam "times taken" counter reads
+    (see stats_service.mock_exam_attempt_counts)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="exam_attempts")
+    exam = models.ForeignKey(MockExam, on_delete=models.CASCADE, related_name="attempts")
+    started_at = models.DateTimeField(auto_now_add=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    total_questions = models.PositiveIntegerField()
+    correct_count = models.PositiveIntegerField(default=0)
+    score_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    # {"<question_id>": <selected_index>} -- snapshot of what was picked,
+    # so the results page can show right/wrong per question without asking
+    # the client to resubmit its own answers.
+    answers = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ["-started_at"]
+
+    def __str__(self):
+        return f"{self.user.username} · {self.exam.title} · {self.started_at:%Y-%m-%d %H:%M}"

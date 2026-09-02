@@ -10,7 +10,12 @@
   <div class="grid lg:grid-cols-[1fr_380px] gap-6 max-w-6xl mx-auto">
     <div class="glass rounded-2xl">
       <div class="p-8">
-        <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-3">{{ lesson_title }}</p>
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <p class="text-xs uppercase tracking-widest text-primary font-semibold">{{ lesson_title }}</p>
+          {% if times_practiced %}
+          <p class="text-[11px] text-muted-foreground shrink-0 flex items-center gap-1"><i data-lucide="book-open" class="h-3 w-3"></i> {{ times_practiced }} practiced</p>
+          {% endif %}
+        </div>
         <pre class="font-sans text-[15px] leading-relaxed whitespace-pre-wrap text-foreground/90">{{ passage }}</pre>
       </div>
     </div>

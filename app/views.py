@@ -29,6 +29,7 @@ from .stats_service import (
     format_accuracy,
     format_number,
     format_study_hours,
+    leaderboard_rows,
     monthly_xp_data,
     notification_preview_hints,
     profile_setup_tasks,
@@ -407,6 +408,25 @@ def statistics(request):
         "acc_data": acc_data,
     }
     return render(request, "statistics.html", ctx)
+
+
+@login_required
+def leaderboard(request):
+    user = get_logged_in_user(request)
+    if not user:
+        return redirect("login")
+
+    board = leaderboard_rows(user)
+    return render(
+        request,
+        "leaderboard.html",
+        {
+            "active": "leaderboard",
+            "rows": board["rows"],
+            "your_row": board["your_row"],
+            "total_ranked": board["total_ranked"],
+        },
+    )
 
 
 @login_required

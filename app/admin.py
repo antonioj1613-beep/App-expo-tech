@@ -1,6 +1,9 @@
 from django.contrib import admin
 
 from .models import (
+    MockExam,
+    MockExamAttempt,
+    MockExamQuestion,
     PracticeSession,
     Skill,
     SkillLesson,
@@ -114,9 +117,12 @@ class SkillLessonAdmin(admin.ModelAdmin):
         (None, {"fields": ("skill", "level", "title", "slug", "sort_order", "is_published")}),
         ("Quiz (Reading / Listening)", {"fields": ("passage", "question_prompt", "options", "correct_index")}),
         ("Photo (Listening Part 1 / Writing photo-sentence)", {"fields": ("image_url", "image_credit")}),
+        ("Video (Listening, optional)", {"fields": ("video_url",)}),
         ("Writing", {"fields": ("writing_prompt", "min_words", "max_words")}),
         ("Vocabulary", {"fields": ("vocab_word", "vocab_ipa", "vocab_meaning", "vocab_example", "vocab_cefr")}),
+        ("Stats", {"fields": ("times_practiced",)}),
     )
+    readonly_fields = ("times_practiced",)
 
 
 @admin.register(UserSkillLessonCompletion)
@@ -125,5 +131,28 @@ class UserSkillLessonCompletionAdmin(admin.ModelAdmin):
     list_filter = ("was_correct", "lesson__skill")
     search_fields = ("user__username", "lesson__title")
     readonly_fields = ("completed_at",)
+
+
+class MockExamQuestionInline(admin.TabularInline):
+    model = MockExamQuestion
+    extra = 1
+    fields = ("order", "section", "question_prompt", "options", "correct_index", "explanation")
+
+
+@admin.register(MockExam)
+class MockExamAdmin(admin.ModelAdmin):
+    list_display = ("title", "time_limit_minutes", "question_count", "is_published", "sort_order")
+    list_filter = ("is_published",)
+    search_fields = ("title", "slug")
+    prepopulated_fields = {"slug": ("title",)}
+    inlines = [MockExamQuestionInline]
+
+
+@admin.register(MockExamAttempt)
+class MockExamAttemptAdmin(admin.ModelAdmin):
+    list_display = ("user", "exam", "score_percent", "correct_count", "total_questions", "started_at", "submitted_at")
+    list_filter = ("exam",)
+    search_fields = ("user__username", "exam__title")
+    readonly_fields = ("started_at",)
 
 

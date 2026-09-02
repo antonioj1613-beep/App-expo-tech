@@ -26,6 +26,7 @@ def _vocab_lesson_context(lesson) -> dict:
         "vocab_meaning": lesson.vocab_meaning,
         "vocab_example": lesson.vocab_example,
         "vocab_cefr": lesson.vocab_cefr,
+        "times_practiced": lesson.times_practiced,
     }
 
 

@@ -17,7 +17,12 @@
         {% if image_credit %}<p class="text-[10px] text-muted-foreground -mt-2">{{ image_credit }}</p>{% endif %}
         {% endif %}
         <div>
-          <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-2">{{ question_label }}</p>
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <p class="text-xs uppercase tracking-widest text-primary font-semibold">{{ question_label }}</p>
+            {% if times_practiced %}
+            <p class="text-[11px] text-muted-foreground shrink-0 flex items-center gap-1"><i data-lucide="pen-line" class="h-3 w-3"></i> {{ times_practiced }} practiced</p>
+            {% endif %}
+          </div>
           <h2 class="font-display text-lg font-semibold leading-snug">{{ writing_prompt }}</h2>
         </div>
         <textarea id="essay" placeholder="Start writing here…" class="field min-h-[320px] text-[15px]"></textarea>
