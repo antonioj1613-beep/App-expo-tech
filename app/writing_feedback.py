@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 
 import httpx
 
@@ -38,6 +39,14 @@ from .tutor_memory import format_error_context_for_prompt, get_top_error_pattern
 GRADING_TIMEOUT_SECONDS = 20.0  # a submit-time call the student is waiting on,
 # same graceful-degradation shape as Speaking's post-session extraction,
 # just a shorter budget since nothing else in the response depends on it.
+
+# 503 on the free tier means "Gemini is overloaded right now" -- transient,
+# not a real failure, and worth a couple quick retries before giving up on
+# real AI feedback for the submission. Every other failure (4xx, other 5xx,
+# timeout, connection error, bad JSON) is left alone and still fails straight
+# to the placeholder, same as before -- those aren't overload signals.
+GEMINI_503_MAX_RETRIES = 2  # 3 attempts total
+GEMINI_503_RETRY_BACKOFF_SECONDS = (1, 2)
 
 GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 
@@ -151,31 +160,35 @@ def grade_writing_submission(
     )
 
     try:
-        response = httpx.post(
-            f"{GEMINI_API_BASE_URL}/{model}:generateContent",
-            headers={"x-goog-api-key": api_key},
-            json={
-                "systemInstruction": {"parts": [{"text": system_prompt}]},
-                "contents": [{"role": "user", "parts": [{"text": essay}]}],
-                "generationConfig": {
-                    "temperature": 0.3,
-                    # 500 was enough for Ollama (no hidden reasoning tokens);
-                    # Gemini 3.x "thinking" models spend part of the output
-                    # budget on invisible reasoning before the visible JSON,
-                    # and that thinking-token spend varies noticeably between
-                    # calls even at the same essay/prompt -- 2048 still
-                    # truncated (finishReason: MAX_TOKENS) on roughly half of
-                    # live test calls. 4096 leaves enough headroom to make
-                    # that rare rather than routine.
-                    "maxOutputTokens": 4096,
-                    "responseMimeType": "application/json",
-                    "responseSchema": _WRITING_RESPONSE_SCHEMA,
+        for attempt in range(GEMINI_503_MAX_RETRIES + 1):
+            response = httpx.post(
+                f"{GEMINI_API_BASE_URL}/{model}:generateContent",
+                headers={"x-goog-api-key": api_key},
+                json={
+                    "systemInstruction": {"parts": [{"text": system_prompt}]},
+                    "contents": [{"role": "user", "parts": [{"text": essay}]}],
+                    "generationConfig": {
+                        "temperature": 0.3,
+                        # 500 was enough for Ollama (no hidden reasoning tokens);
+                        # Gemini 3.x "thinking" models spend part of the output
+                        # budget on invisible reasoning before the visible JSON,
+                        # and that thinking-token spend varies noticeably between
+                        # calls even at the same essay/prompt -- 2048 still
+                        # truncated (finishReason: MAX_TOKENS) on roughly half of
+                        # live test calls. 4096 leaves enough headroom to make
+                        # that rare rather than routine.
+                        "maxOutputTokens": 4096,
+                        "responseMimeType": "application/json",
+                        "responseSchema": _WRITING_RESPONSE_SCHEMA,
+                    },
                 },
-            },
-            timeout=GRADING_TIMEOUT_SECONDS,
-        )
+                timeout=GRADING_TIMEOUT_SECONDS,
+            )
+            if response.status_code != 503 or attempt == GEMINI_503_MAX_RETRIES:
+                break
+            time.sleep(GEMINI_503_RETRY_BACKOFF_SECONDS[attempt])
         if response.status_code != 200:
-            return None  # covers 429 (quota exhausted) same as any other failure -- straight to placeholder, no retry
+            return None  # covers 429/503-after-retries/etc same as any other failure -- straight to placeholder
         candidates = response.json().get("candidates") or []
         if not candidates:
             return None  # empty when Gemini's safety filters block the prompt or the output

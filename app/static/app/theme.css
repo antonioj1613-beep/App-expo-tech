@@ -159,11 +159,17 @@ body {
 
 /* ---- Landing hero: fixed CSS-3D shape background (landing only) ----
    The whole layer is position:fixed so it stays put behind the scrolling
-   content — no scroll listeners, no WebGL, GPU-composited transforms only. */
+   content — no scroll listeners, no WebGL, GPU-composited transforms only.
+   z-index must beat 1: landing.html's <div class="... bg-background relative
+   overflow-hidden"> page wrapper is a later DOM sibling with no z-index of
+   its own (auto), so at z-index:0 it tied the stacking order and, being
+   opaque, painted over this layer for the whole page height -- only the
+   sliver above that wrapper (near the very top) ever showed the shapes.
+   Still well under the hero content (z-10) and header (z-20). */
 .hero-bg-layer {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   overflow: hidden;
   pointer-events: none;
 }
