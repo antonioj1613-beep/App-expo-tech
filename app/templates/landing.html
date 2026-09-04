@@ -2,199 +2,267 @@
 {% load static %}
 {% block title %}Learning Skills — Master English, one skill at a time{% endblock %}
 {% block body %}
-<div class="hero-bg-layer" aria-hidden="true">
-  <div class="absolute inset-0 bg-gradient-mesh gradient-drift opacity-80"></div>
-  <div class="absolute inset-0 grid-bg opacity-40"></div>
+<style>
+  .ls-page a { color: rgb(245 245 248); text-decoration: none; }
+  .ls-page ::selection { background: oklch(0.7 0.27 295 / 0.3); }
+  @keyframes ls-drift { 0%,100% { background-position: 0 0; } 50% { background-position: 3% 5%; } }
+  @keyframes ls-orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  @keyframes ls-orbit-rev { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+  @keyframes ls-pulse { 0%,100% { box-shadow: 0 0 40px -12px oklch(0.65 0.25 295 / 0.55); } 50% { box-shadow: 0 0 80px -6px oklch(0.7 0.28 295 / 0.85); } }
+  @keyframes ls-rise { from { opacity: 0; transform: translateY(0.6em); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes ls-sheen { 0% { transform: translateX(-120%); } 100% { transform: translateX(240%); } }
+  @keyframes ls-node { 0%,100% { box-shadow: 0 0 10px oklch(0.7 0.3 295 / 0.5); } 50% { box-shadow: 0 0 22px oklch(0.7 0.3 295 / 0.9); } }
+  .ls-nav-link:hover { color: rgb(199 139 255); }
+  .ls-nav-signin { transition: border-color .2s, color .2s; }
+  .ls-nav-signin:hover { border-color: rgb(176 105 255 / 0.7); color: rgb(245 245 248); }
+  .ls-cta-primary { transition: filter .2s, transform .2s; }
+  .ls-cta-primary:hover { filter: brightness(1.08); transform: translateY(-2px); color: rgb(5 5 13); }
+  .ls-cta-secondary { transition: border-color .2s, transform .2s, color .2s; }
+  .ls-cta-secondary:hover { border-color: rgb(176 105 255 / 0.5); transform: translateY(-2px); color: rgb(245 245 248); }
+  .ls-skill-card { transition: border-color .25s, transform .25s; }
+  .ls-skill-card:hover { border-color: rgb(176 105 255 / 0.45); transform: translateY(-3px); }
+  .ls-footer-link:hover { color: rgb(245 245 248); }
+  @media (prefers-reduced-motion: reduce) {
+    .ls-page [data-rise], .ls-page [data-reveal] { opacity: 1 !important; transform: none !important; animation: none !important; }
+  }
+</style>
 
-  <div class="hero-shape-wrap hero-spin-cw" style="top:11%; left:10%; width:4.5rem; height:4.5rem; opacity:.75;">
-    <model-viewer class="hero-shape" src="{% static 'app/models/herocross.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-4));"></model-viewer>
-  </div>
+<div class="ls-page" style="position: relative; min-height: 100vh; background: rgb(6 6 17); color: rgb(245 245 248); overflow-x: hidden; font-family: 'Inter', system-ui, sans-serif;">
 
-  <div class="hero-shape-wrap hero-float-a" style="top:15%; right:12%; width:6rem; height:6rem; opacity:.8;">
-    <model-viewer class="hero-shape" src="{% static 'app/models/herosphere.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-4));"></model-viewer>
-  </div>
-
-  <div class="hero-shape-wrap hero-float-b hidden sm:block" style="bottom:13%; right:15%; width:3.75rem; height:3.75rem; opacity:.6;">
-    <model-viewer class="hero-shape" src="{% static 'app/models/herocross.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-1));"></model-viewer>
-  </div>
-
-  <div class="hero-shape-wrap hero-spin-ccw" style="bottom:17%; left:11%; width:3.25rem; height:3.25rem; opacity:.65;">
-    <model-viewer class="hero-shape" src="{% static 'app/models/herosphere.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-3));"></model-viewer>
-  </div>
-
-  <div class="hero-shape-wrap hero-float-c hidden sm:block" style="top:46%; left:8%; width:2.25rem; height:2.25rem; opacity:.55;">
-    <model-viewer class="hero-shape" src="{% static 'app/models/herosphere.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-5));"></model-viewer>
-  </div>
-
-  <div class="hero-shape-wrap hero-sway" style="top:20%; right:24%; width:4.5rem; height:4.5rem; opacity:.6;">
-    <model-viewer class="hero-shape" src="{% static 'app/models/herotriangle.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-3));"></model-viewer>
-  </div>
-
-  <div class="hero-shape-wrap hero-float-d" style="top:36%; left:22%; width:2.75rem; height:2.75rem; opacity:.5;">
-    <model-viewer class="hero-shape" src="{% static 'app/models/herotriangle.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-2));"></model-viewer>
-  </div>
-
-  <div class="hero-shape-wrap hero-spin-ccw hidden sm:block" style="bottom:30%; right:6%; width:3.25rem; height:3.25rem; opacity:.55;">
-    <model-viewer class="hero-shape" src="{% static 'app/models/herotriangle.glb' %}" alt="" environment-image="neutral" shadow-intensity="0" style="--shape-a: rgb(var(--chart-4));"></model-viewer>
-  </div>
-</div>
-
-<header data-scroll-header class="fade-in sticky top-0 z-20 w-full">
-  <div class="max-w-[100rem] mx-auto px-6 lg:px-8 py-6 flex items-center justify-between">
-    <a href="{% url 'landing' %}" class="flex items-center gap-2.5">
-      {% include "partials/logo.html" %}
-      <span class="font-display font-bold text-lg tracking-tight">Learning Skills</span>
-    </a>
-    <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground">
-      <a href="#about" class="hover:text-foreground transition">About</a>
-      <a href="#tools" class="hover:text-foreground transition">Tools</a>
-      <a href="#features" class="hover:text-foreground transition">Features</a>
-      <a href="#lisa" class="hover:text-foreground transition">Lisa</a>
-    </nav>
-    <div class="flex items-center gap-2">
-      <button onclick="toggleTheme()" class="btn btn-ghost btn-icon rounded-full"><i data-lucide="sun-moon" class="h-[18px] w-[18px]"></i></button>
-      <a href="{% url 'login' %}" class="btn btn-ghost hidden sm:inline-flex">Sign in</a>
-      <a href="{% url 'login' %}" class="btn btn-hero">Get started <i data-lucide="arrow-right" class="h-4 w-4"></i></a>
+  <div aria-hidden="true" style="position: fixed; inset: 0; z-index: 1; overflow: hidden; pointer-events: none;">
+    <div data-parallax="0.08" style="position: absolute; inset: -10%; opacity: .85; animation: ls-drift 28s ease-in-out infinite; background-image: radial-gradient(at 50% 8%, oklch(0.55 0.3 295 / 0.4) 0px, transparent 55%), radial-gradient(at 20% 80%, oklch(0.5 0.28 265 / 0.26) 0px, transparent 52%);"></div>
+    <div data-parallax="0.3" data-parallax-wrap="56" style="position: absolute; inset: -20% 0; opacity: .5; background-image: linear-gradient(to right, oklch(0.7 0.27 295 / 0.07) 1px, transparent 1px), linear-gradient(to bottom, oklch(0.7 0.27 295 / 0.07) 1px, transparent 1px); background-size: 56px 56px; mask-image: radial-gradient(ellipse 110% 90% at 50% 35%, #000 50%, transparent 100%); -webkit-mask-image: radial-gradient(ellipse 110% 90% at 50% 35%, #000 50%, transparent 100%);"></div>
+    <div id="ls-spot" style="position: absolute; width: 40rem; height: 40rem; left: 50%; top: 30%; transform: translate(-50%, -50%); background-image: radial-gradient(circle at center, oklch(0.7 0.3 295 / 0.22), transparent 62%); filter: blur(12px); transition: opacity .3s;"></div>
+    <div data-parallax="0.45" style="position: absolute; top: 58%; left: 7%; width: 3.25rem; height: 3.25rem; opacity: .5;">
+      <div style="width: 100%; height: 100%; border-radius: 999px; background: radial-gradient(circle at 30% 24%, #e6d0ff 0%, #bd86f7 28%, #8c48db 60%, #3b1370 100%); box-shadow: inset -9px -11px 22px rgba(18,4,44,.7);"></div>
+    </div>
+    <div data-parallax="0.62" style="position: absolute; top: 34%; right: 8%; width: 2.75rem; height: 2.75rem; opacity: .42;">
+      <svg viewBox="0 0 100 100" style="width: 100%; height: 100%;">
+        <polygon points="50,12 90,84 10,84" fill="none" stroke="rgb(0 198 213)" stroke-width="6" stroke-linejoin="round" style="filter: drop-shadow(0 0 8px rgba(0,198,213,.6));"></polygon>
+      </svg>
     </div>
   </div>
-</header>
 
-<div class="min-h-screen bg-background text-foreground relative overflow-hidden">
-  <!-- Hero: Learning Skills -->
-  <section class="relative z-10 max-w-[100rem] mx-auto px-6 lg:px-8 pt-16 pb-20 text-center">
-    <div class="fade-in inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs font-medium mb-8">
-      <span class="h-1.5 w-1.5 rounded-full bg-gradient-primary animate-glow-pulse"></span>
-      Your complete English learning platform
+  <header style="position: sticky; top: 0; z-index: 30; background: rgb(6 6 17 / 0.6); backdrop-filter: blur(18px) saturate(170%); -webkit-backdrop-filter: blur(18px) saturate(170%);">
+    <div style="max-width: 78rem; margin: 0 auto; padding: 1.25rem 2rem; display: flex; align-items: center; justify-content: space-between;">
+      <a href="#top" style="display: flex; align-items: center; gap: 0.625rem;">
+        <img src="{% static 'app/logo.svg' %}" alt="Learning Skills" style="height: 1.75rem; width: 1.75rem; border-radius: 0.625rem;">
+        <span style="font-weight: 650; letter-spacing: -0.02em;">Learning Skills</span>
+      </a>
+      <div style="display: flex; align-items: center; gap: 1.5rem; font-size: 0.8125rem; color: rgb(163 164 181);">
+        <a href="#levels" class="ls-nav-link" style="color: inherit;">Levels</a>
+        <a href="#skills" class="ls-nav-link" style="color: inherit;">Skills</a>
+        <a href="#lisa" class="ls-nav-link" style="color: inherit;">Lisa</a>
+        <a href="{% url 'login' %}" class="ls-nav-signin" style="display: inline-flex; align-items: center; gap: 0.4rem; height: 2.25rem; padding: 0 1rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; background: rgb(23 24 45 / 0.7); border: 1px solid rgb(176 105 255 / 0.3); color: rgb(230 230 240);">Sign in</a>
+      </div>
     </div>
-    <h1 class="fade-in font-display text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.95] select-none" data-delay="60">
-      Master English<br /><span class="text-gradient">one skill at a time.</span>
-    </h1>
-    <p class="fade-in mt-7 max-w-2xl mx-auto text-lg text-muted-foreground leading-relaxed select-none" data-delay="120">
-      Learning Skills is a structured platform for serious learners. Practice listening, reading, writing, and vocabulary — track your progress, earn XP, and climb through 15 levels at your own pace.
-    </p>
-    <div class="fade-in mt-10 flex flex-wrap items-center justify-center gap-3" data-delay="180">
-      <a href="{% url 'register' %}" class="btn btn-hero btn-xl">Start learning free <i data-lucide="arrow-right" class="h-5 w-5"></i></a>
-      <a href="{% url 'dashboard' %}" class="btn btn-glass btn-xl">See live demo</a>
-    </div>
-  </section>
+  </header>
 
-  <!-- About: what Learning Skills is -->
-  <section id="about" class="landing-section relative z-10 max-w-[100rem] mx-auto px-6 lg:px-8 py-20">
-    <div class="fade-in text-center mb-14">
-      <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-3">What is Learning Skills?</p>
-      <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Built for real progress.</h2>
-      <p class="mt-4 max-w-2xl mx-auto text-muted-foreground leading-relaxed">
-        A focused learning app that puts skill-building first. No fluff — just the tools, structure, and motivation you need to go from beginner to fluent.
+  <section id="top" style="position: relative; z-index: 10; min-height: 88vh; display: grid; place-items: center; text-align: center; padding: 4rem 2rem 6rem;">
+    <div style="position: absolute; top: 50%; left: 50%; width: 46rem; height: 46rem; transform: translate(-50%, -50%); pointer-events: none;">
+      <div style="position: absolute; inset: 0; border-radius: 999px; border: 1px solid rgb(176 105 255 / 0.12); animation: ls-orbit 60s linear infinite;">
+        <div style="position: absolute; top: -4px; left: 50%; height: 8px; width: 8px; border-radius: 999px; background: rgb(199 139 255); box-shadow: 0 0 16px rgb(176 105 255);"></div>
+      </div>
+      <div style="position: absolute; inset: 6rem; border-radius: 999px; border: 1px solid rgb(0 198 213 / 0.12); animation: ls-orbit-rev 46s linear infinite;">
+        <div style="position: absolute; bottom: -3px; left: 34%; height: 6px; width: 6px; border-radius: 999px; background: rgb(0 198 213); box-shadow: 0 0 14px rgb(0 198 213);"></div>
+      </div>
+      <div style="position: absolute; inset: 12rem; border-radius: 999px; border: 1px solid rgb(247 112 239 / 0.1); animation: ls-orbit 34s linear infinite;"></div>
+    </div>
+
+    <div style="position: relative; max-width: 60rem;">
+      <p data-rise style="margin: 0 0 1.75rem; display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.9rem; border-radius: 999px; font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; letter-spacing: 0.16em; text-transform: uppercase; color: rgb(199 139 255); background: rgb(13 14 28 / 0.6); backdrop-filter: blur(20px); border: 1px solid rgb(176 105 255 / 0.28);">
+        <i data-lucide="sparkles" style="width: 0.75rem; height: 0.75rem;"></i> Your complete English platform
       </p>
-    </div>
-    <div class="grid md:grid-cols-3 gap-6">
-      {% for item in about %}
-      <div class="fade-in glass rounded-2xl p-8 text-center hover:shadow-glow transition-all hover:-translate-y-1" data-delay="{% widthratio forloop.counter0|add:1 1 50 %}">
-        <div class="h-12 w-12 rounded-xl bg-primary/15 grid place-items-center mx-auto mb-5"><i data-lucide="{{ item.icon }}" class="h-6 w-6 text-primary"></i></div>
-        <h3 class="font-semibold text-lg mb-2">{{ item.t }}</h3>
-        <p class="text-sm text-muted-foreground leading-relaxed">{{ item.d }}</p>
-      </div>
-      {% endfor %}
-    </div>
-  </section>
-
-  <!-- Tools: everything in the app -->
-  <section id="tools" class="landing-section relative z-10 max-w-[100rem] mx-auto px-6 lg:px-8 py-20">
-    <div class="fade-in text-center mb-14">
-      <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-3">Inside the app</p>
-      <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Every tool you need.</h2>
-      <p class="mt-4 max-w-2xl mx-auto text-muted-foreground leading-relaxed">
-        Learning Skills bundles dedicated practice modules, progress tracking, and gamification into one cohesive experience.
+      <h1 style="margin: 0; font-size: 6rem; font-weight: 800; letter-spacing: -0.05em; line-height: 0.94;">
+        <span data-rise data-rise-delay="80" style="display: block;">Master English</span>
+        <span data-rise data-rise-delay="200" style="display: block; background: linear-gradient(100deg, oklch(0.82 0.17 305), oklch(0.7 0.28 295) 45%, oklch(0.62 0.24 262)); -webkit-background-clip: text; background-clip: text; color: transparent;">one skill at a time.</span>
+      </h1>
+      <p data-rise data-rise-delay="340" style="margin: 2rem auto 0; max-width: 34rem; font-size: 1.0625rem; line-height: 1.7; color: rgb(178 179 196); text-wrap: pretty;">
+        Five skills. Fifteen levels. One AI tutor who never gets tired of you.
       </p>
+      <div data-rise data-rise-delay="440" style="margin-top: 2.5rem; display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center;">
+        <a href="{% url 'register' %}" class="ls-cta-primary" style="position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 0.5rem; height: 3.25rem; padding: 0 2rem; border-radius: 999px; font-size: 0.9375rem; font-weight: 600; background: linear-gradient(135deg, oklch(0.7 0.28 295), oklch(0.6 0.24 265)); color: rgb(5 5 13); box-shadow: 0 24px 50px -22px oklch(0.7 0.3 295 / 0.95);">
+          Start learning free <i data-lucide="arrow-right" style="width: 1rem; height: 1rem;"></i>
+          <span style="position: absolute; top: 0; bottom: 0; width: 35%; background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.32), transparent); animation: ls-sheen 4.5s ease-in-out infinite;"></span>
+        </a>
+        <a href="{% url 'dashboard' %}" class="ls-cta-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem; height: 3.25rem; padding: 0 1.75rem; border-radius: 999px; font-size: 0.9375rem; font-weight: 550; color: rgb(230 230 240); background: rgb(13 14 28 / 0.55); backdrop-filter: blur(20px); border: 1px solid rgb(37 39 60);"><i data-lucide="play-circle" style="width: 1rem; height: 1rem;"></i> Watch the demo</a>
+      </div>
     </div>
-    <div class="relative max-w-5xl mx-auto">
-      <div class="absolute -inset-8 bg-gradient-glow opacity-40 blur-3xl pointer-events-none"></div>
-      <div class="fade-in relative glass-strong rounded-3xl p-2 shadow-elegant">
-        <div class="rounded-2xl bg-card/80 p-6 md:p-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
-          {% for t in tools %}
-          <a href="{% url t.url %}" class="fade-in group space-y-3 rounded-xl p-4 -m-4 hover:bg-secondary/40 transition" data-delay="{% widthratio forloop.counter0|add:1 1 50 %}">
-            <div class="h-11 w-11 rounded-xl bg-primary/15 grid place-items-center group-hover:bg-gradient-primary group-hover:shadow-glow transition-all">
-              <i data-lucide="{{ t.icon }}" class="h-5 w-5 text-primary group-hover:text-primary-foreground transition-colors"></i>
-            </div>
-            <h3 class="font-semibold group-hover:text-primary transition-colors">{{ t.t }}</h3>
-            <p class="text-sm text-muted-foreground">{{ t.d }}</p>
-          </a>
-          {% endfor %}
+  </section>
+
+  <section id="levels" style="position: relative; z-index: 10; max-width: 78rem; margin: 0 auto; padding: 2rem 2rem 6rem;">
+    <div data-reveal style="text-align: center; margin-bottom: 3rem;">
+      <p style="margin: 0 0 0.875rem; font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgb(199 139 255);">The path</p>
+      <h2 style="margin: 0; font-size: 3rem; font-weight: 700; letter-spacing: -0.035em;">Fifteen levels, one rail.</h2>
+    </div>
+    <div data-reveal data-reveal-delay="80" style="position: relative; border-radius: 1.5rem; padding: 2.5rem 2rem; background: rgb(11 12 25 / 0.66); backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%); border: 1px solid rgb(37 39 60 / 0.9); box-shadow: 0 30px 70px -40px oklch(0.05 0.02 280 / 0.9); overflow: hidden;">
+      <div style="position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(ellipse 40% 120% at 40% 50%, oklch(0.7 0.3 295 / 0.18), transparent 70%);"></div>
+      <div style="position: relative; display: flex; align-items: center; gap: 0;">
+        <div style="position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: linear-gradient(90deg, oklch(0.7 0.28 295), oklch(0.62 0.24 262) 45%, rgb(37 39 60) 46%, rgb(37 39 60));"></div>
+        <div style="position: relative; display: flex; justify-content: space-between; width: 100%;">
+          <div style="height: 0.875rem; width: 0.875rem; border-radius: 999px; background: linear-gradient(135deg, oklch(0.78 0.2 300), oklch(0.62 0.24 262)); animation: ls-node 3s ease-in-out infinite;"></div>
+          <div style="height: 0.875rem; width: 0.875rem; border-radius: 999px; background: linear-gradient(135deg, oklch(0.78 0.2 300), oklch(0.62 0.24 262)); animation: ls-node 3s ease-in-out infinite .2s;"></div>
+          <div style="height: 0.875rem; width: 0.875rem; border-radius: 999px; background: linear-gradient(135deg, oklch(0.78 0.2 300), oklch(0.62 0.24 262)); animation: ls-node 3s ease-in-out infinite .4s;"></div>
+          <div style="height: 0.875rem; width: 0.875rem; border-radius: 999px; background: linear-gradient(135deg, oklch(0.78 0.2 300), oklch(0.62 0.24 262)); animation: ls-node 3s ease-in-out infinite .6s;"></div>
+          <div style="height: 0.875rem; width: 0.875rem; border-radius: 999px; background: linear-gradient(135deg, oklch(0.78 0.2 300), oklch(0.62 0.24 262)); animation: ls-node 3s ease-in-out infinite .8s;"></div>
+          <div style="height: 0.875rem; width: 0.875rem; border-radius: 999px; background: linear-gradient(135deg, oklch(0.78 0.2 300), oklch(0.62 0.24 262)); animation: ls-node 3s ease-in-out infinite 1s;"></div>
+          <div style="height: 1.5rem; width: 1.5rem; margin-top: -0.3rem; border-radius: 999px; background: linear-gradient(135deg, oklch(0.82 0.17 305), oklch(0.62 0.24 262)); border: 3px solid rgb(6 6 17); animation: ls-pulse 3s ease-in-out infinite;"></div>
+          <div style="height: 0.75rem; width: 0.75rem; border-radius: 999px; background: rgb(23 24 45); border: 1px solid rgb(55 57 82);"></div>
+          <div style="height: 0.75rem; width: 0.75rem; border-radius: 999px; background: rgb(23 24 45); border: 1px solid rgb(55 57 82);"></div>
+          <div style="height: 0.75rem; width: 0.75rem; border-radius: 999px; background: rgb(23 24 45); border: 1px solid rgb(55 57 82);"></div>
+          <div style="height: 0.75rem; width: 0.75rem; border-radius: 999px; background: rgb(23 24 45); border: 1px solid rgb(55 57 82);"></div>
+          <div style="height: 0.75rem; width: 0.75rem; border-radius: 999px; background: rgb(23 24 45); border: 1px solid rgb(55 57 82);"></div>
+          <div style="height: 0.75rem; width: 0.75rem; border-radius: 999px; background: rgb(23 24 45); border: 1px solid rgb(55 57 82);"></div>
+          <div style="height: 0.75rem; width: 0.75rem; border-radius: 999px; background: rgb(23 24 45); border: 1px solid rgb(55 57 82);"></div>
+          <div style="height: 0.75rem; width: 0.75rem; border-radius: 999px; background: rgb(23 24 45); border: 1px solid rgb(55 57 82);"></div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- Features: platform capabilities -->
-  <section id="features" class="landing-section relative z-10 max-w-[100rem] mx-auto px-6 lg:px-8 py-20">
-    <div class="fade-in text-center mb-14">
-      <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-3">Platform features</p>
-      <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Built for serious learners.</h2>
-    </div>
-    <div class="grid md:grid-cols-3 gap-6">
-      {% for f in features %}
-      <div class="fade-in glass rounded-2xl p-6 hover:shadow-glow transition-all hover:-translate-y-1" data-delay="{% widthratio forloop.counter0|add:1 1 50 %}">
-        <div class="h-11 w-11 rounded-xl bg-gradient-primary grid place-items-center shadow-glow mb-4"><i data-lucide="{{ f.icon }}" class="h-5 w-5 text-primary-foreground"></i></div>
-        <h3 class="font-semibold text-lg mb-2">{{ f.t }}</h3>
-        <p class="text-sm text-muted-foreground leading-relaxed">{{ f.d }}</p>
+      <div style="position: relative; margin-top: 1.5rem; display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgb(120 121 140);">
+        <span>01 · Beginner</span><span style="color: rgb(199 139 255);">07 · You are here</span><span>15 · Fluent</span>
       </div>
-      {% endfor %}
     </div>
   </section>
 
-  <!-- Lisa: the big surprise -->
-  <section id="lisa" class="landing-section relative z-10 max-w-[100rem] mx-auto px-6 lg:px-8 py-20">
-    <div class="fade-in glass-strong rounded-3xl p-10 md:p-16 shadow-elegant relative overflow-hidden">
-      <div class="absolute inset-0 bg-gradient-glow opacity-50 pointer-events-none"></div>
-      <div class="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="relative grid md:grid-cols-[1fr_auto] gap-10 items-center">
-        <div class="text-center md:text-left">
-          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/15 text-primary text-xs font-semibold mb-6">
-            <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
-            The surprise inside
+  <section id="skills" style="position: relative; z-index: 10; max-width: 78rem; margin: 0 auto; padding: 0 2rem 6rem; display: flex; flex-direction: column; gap: 1.5rem;">
+    <div data-reveal class="ls-skill-card" style="position: relative; overflow: hidden; border-radius: 1.5rem; padding: 3rem; background: rgb(11 12 25 / 0.66); backdrop-filter: blur(28px); border: 1px solid rgb(37 39 60 / 0.9); display: grid; grid-template-columns: 7rem 1fr auto; gap: 2.5rem; align-items: center;">
+      <span style="font-size: 3.5rem; font-weight: 800; letter-spacing: -0.05em; background: linear-gradient(180deg, rgb(199 139 255 / 0.9), rgb(176 105 255 / 0.15)); -webkit-background-clip: text; background-clip: text; color: transparent;">01</span>
+      <div>
+        <h3 style="margin: 0 0 0.5rem; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.025em;">Listen like a native</h3>
+        <p style="margin: 0; max-width: 34rem; font-size: 0.9375rem; color: rgb(163 164 181); line-height: 1.7;">Thousands of clips from podcasts, films, and news — with smart subtitles that adapt to your level.</p>
+      </div>
+      <div style="height: 3.25rem; width: 3.25rem; border-radius: 1.125rem; background: linear-gradient(135deg, oklch(0.7 0.28 295), oklch(0.6 0.24 265)); display: grid; place-items: center; box-shadow: 0 14px 34px -18px oklch(0.7 0.3 295 / 0.95);"><i data-lucide="headphones" style="width: 1.375rem; height: 1.375rem; color: rgb(5 5 13);"></i></div>
+    </div>
+    <div data-reveal data-reveal-delay="60" class="ls-skill-card" style="position: relative; overflow: hidden; border-radius: 1.5rem; padding: 3rem; background: rgb(11 12 25 / 0.66); backdrop-filter: blur(28px); border: 1px solid rgb(37 39 60 / 0.9); display: grid; grid-template-columns: 7rem 1fr auto; gap: 2.5rem; align-items: center;">
+      <span style="font-size: 3.5rem; font-weight: 800; letter-spacing: -0.05em; background: linear-gradient(180deg, rgb(199 139 255 / 0.9), rgb(176 105 255 / 0.15)); -webkit-background-clip: text; background-clip: text; color: transparent;">02</span>
+      <div>
+        <h3 style="margin: 0 0 0.5rem; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.025em;">Read and write with feedback</h3>
+        <p style="margin: 0; max-width: 34rem; font-size: 0.9375rem; color: rgb(163 164 181); line-height: 1.7;">Adaptive comprehension at every level, and AI notes on every sentence you write.</p>
+      </div>
+      <div style="height: 3.25rem; width: 3.25rem; border-radius: 1.125rem; background: linear-gradient(135deg, oklch(0.7 0.28 295), oklch(0.6 0.24 265)); display: grid; place-items: center; box-shadow: 0 14px 34px -18px oklch(0.7 0.3 295 / 0.95);"><i data-lucide="pen-line" style="width: 1.375rem; height: 1.375rem; color: rgb(5 5 13);"></i></div>
+    </div>
+    <div data-reveal data-reveal-delay="120" class="ls-skill-card" style="position: relative; overflow: hidden; border-radius: 1.5rem; padding: 3rem; background: rgb(11 12 25 / 0.66); backdrop-filter: blur(28px); border: 1px solid rgb(37 39 60 / 0.9); display: grid; grid-template-columns: 7rem 1fr auto; gap: 2.5rem; align-items: center;">
+      <span style="font-size: 3.5rem; font-weight: 800; letter-spacing: -0.05em; background: linear-gradient(180deg, rgb(199 139 255 / 0.9), rgb(176 105 255 / 0.15)); -webkit-background-clip: text; background-clip: text; color: transparent;">03</span>
+      <div>
+        <h3 style="margin: 0 0 0.5rem; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.025em;">Remember every word</h3>
+        <p style="margin: 0; max-width: 34rem; font-size: 0.9375rem; color: rgb(163 164 181); line-height: 1.7;">Spaced repetition tuned by neural ranking, so reviews land exactly when you'd forget.</p>
+      </div>
+      <div style="height: 3.25rem; width: 3.25rem; border-radius: 1.125rem; background: linear-gradient(135deg, oklch(0.7 0.28 295), oklch(0.6 0.24 265)); display: grid; place-items: center; box-shadow: 0 14px 34px -18px oklch(0.7 0.3 295 / 0.95);"><i data-lucide="graduation-cap" style="width: 1.375rem; height: 1.375rem; color: rgb(5 5 13);"></i></div>
+    </div>
+    <div data-reveal data-reveal-delay="180" class="ls-skill-card" style="position: relative; overflow: hidden; border-radius: 1.5rem; padding: 3rem; background: rgb(11 12 25 / 0.66); backdrop-filter: blur(28px); border: 1px solid rgb(37 39 60 / 0.9); display: grid; grid-template-columns: 7rem 1fr auto; gap: 2.5rem; align-items: center;">
+      <span style="font-size: 3.5rem; font-weight: 800; letter-spacing: -0.05em; background: linear-gradient(180deg, rgb(199 139 255 / 0.9), rgb(176 105 255 / 0.15)); -webkit-background-clip: text; background-clip: text; color: transparent;">04</span>
+      <div>
+        <h3 style="margin: 0 0 0.5rem; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.025em;">Stay on the streak</h3>
+        <p style="margin: 0; max-width: 34rem; font-size: 0.9375rem; color: rgb(163 164 181); line-height: 1.7;">XP, daily goals, and statistics that make consistency the easiest part.</p>
+      </div>
+      <div style="height: 3.25rem; width: 3.25rem; border-radius: 1.125rem; background: linear-gradient(135deg, oklch(0.7 0.28 295), oklch(0.6 0.24 265)); display: grid; place-items: center; box-shadow: 0 14px 34px -18px oklch(0.7 0.3 295 / 0.95);"><i data-lucide="trophy" style="width: 1.375rem; height: 1.375rem; color: rgb(5 5 13);"></i></div>
+    </div>
+  </section>
+
+  <section id="lisa" style="position: relative; z-index: 10; padding: 0 2rem 7rem;">
+    <div data-reveal style="max-width: 78rem; margin: 0 auto; position: relative; overflow: hidden; border-radius: 2rem; padding: 5rem 3rem; text-align: center; background: rgb(9 10 22 / 0.72); backdrop-filter: blur(28px) saturate(180%); border: 1px solid rgb(176 105 255 / 0.22); box-shadow: 0 40px 90px -50px oklch(0.05 0.02 280 / 0.95);">
+      <div style="position: absolute; inset: 0; pointer-events: none; background-image: radial-gradient(ellipse 55% 80% at 50% 0%, oklch(0.7 0.3 295 / 0.3), transparent 70%);"></div>
+      <div style="position: relative;">
+        <div style="position: relative; display: inline-grid; place-items: center; margin-bottom: 2rem;">
+          <div style="position: absolute; width: 12rem; height: 12rem; border-radius: 999px; border: 1px solid rgb(176 105 255 / 0.2); animation: ls-orbit 24s linear infinite;">
+            <div style="position: absolute; top: -3px; left: 50%; height: 6px; width: 6px; border-radius: 999px; background: rgb(0 198 213); box-shadow: 0 0 12px rgb(0 198 213);"></div>
           </div>
-          <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">
-            Meet <span class="text-gradient">Lisa</span> — your AI companion.
-          </h2>
-          <p class="mt-5 text-muted-foreground leading-relaxed max-w-xl">
-            Learning Skills is the platform. Lisa is the secret weapon. She lives inside the app as your personal AI tutor — analyzing pronunciation, correcting grammar in real time, and adapting every lesson to your weaknesses. Most learners discover her after their first session. You just did.
-          </p>
-          <ul class="mt-6 space-y-3 text-sm text-muted-foreground">
-            <li class="flex items-center gap-2.5 justify-center md:justify-start"><i data-lucide="check-circle" class="h-4 w-4 text-success shrink-0"></i> Real-time conversation tutor — now in beta</li>
-            <li class="flex items-center gap-2.5 justify-center md:justify-start"><i data-lucide="check-circle" class="h-4 w-4 text-success shrink-0"></i> Pronunciation, grammar, and tone analyzed instantly</li>
-            <li class="flex items-center gap-2.5 justify-center md:justify-start"><i data-lucide="check-circle" class="h-4 w-4 text-success shrink-0"></i> Personalized lessons that adapt every day</li>
-          </ul>
+          <div style="height: 6.5rem; width: 6.5rem; border-radius: 2rem; background: linear-gradient(135deg, oklch(0.7 0.28 295), oklch(0.6 0.24 265)); display: grid; place-items: center; animation: ls-pulse 3s ease-in-out infinite;"><i data-lucide="sparkles" style="width: 2.75rem; height: 2.75rem; color: rgb(5 5 13);"></i></div>
         </div>
-        <div class="flex justify-center">
-          <div class="relative">
-            <div class="absolute -inset-6 bg-gradient-glow opacity-70 blur-2xl animate-glow-pulse"></div>
-            <div class="relative h-36 w-36 md:h-44 md:w-44 rounded-3xl bg-gradient-primary grid place-items-center shadow-glow">
-              <i data-lucide="sparkles" class="h-16 w-16 md:h-20 md:w-20 text-primary-foreground"></i>
-            </div>
-          </div>
+        <p style="margin: 0 0 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgb(199 139 255);">The surprise inside</p>
+        <h2 style="margin: 0 auto; max-width: 40rem; font-size: 3rem; font-weight: 700; letter-spacing: -0.035em; line-height: 1.08;">Meet <span style="background: linear-gradient(100deg, oklch(0.82 0.17 305), oklch(0.62 0.24 262)); -webkit-background-clip: text; background-clip: text; color: transparent;">Lisa</span> — your AI companion.</h2>
+        <p style="margin: 1.5rem auto 0; max-width: 36rem; font-size: 1rem; color: rgb(178 179 196); line-height: 1.75; text-wrap: pretty;">A personal tutor living inside the app: analyzing pronunciation, correcting grammar in real time, and adapting every lesson to your weaknesses. Most learners discover her after their first session.</p>
+        <div style="margin-top: 2.5rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.625rem;">
+          <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 999px; font-size: 0.8125rem; color: rgb(200 201 214); background: rgb(23 24 45 / 0.6); border: 1px solid rgb(37 39 60);"><i data-lucide="check-circle" style="width: 0.875rem; height: 0.875rem; color: rgb(0 199 105);"></i> Conversation tutor in beta</span>
+          <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 999px; font-size: 0.8125rem; color: rgb(200 201 214); background: rgb(23 24 45 / 0.6); border: 1px solid rgb(37 39 60);"><i data-lucide="check-circle" style="width: 0.875rem; height: 0.875rem; color: rgb(0 199 105);"></i> Instant pronunciation &amp; tone analysis</span>
+          <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 999px; font-size: 0.8125rem; color: rgb(200 201 214); background: rgb(23 24 45 / 0.6); border: 1px solid rgb(37 39 60);"><i data-lucide="check-circle" style="width: 0.875rem; height: 0.875rem; color: rgb(0 199 105);"></i> Lessons that adapt every day</span>
         </div>
+        <a href="{% url 'register' %}" class="ls-cta-primary" style="position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 0.5rem; height: 3.25rem; padding: 0 2rem; margin-top: 2.75rem; border-radius: 999px; font-size: 0.9375rem; font-weight: 600; background: linear-gradient(135deg, oklch(0.7 0.28 295), oklch(0.6 0.24 265)); color: rgb(5 5 13); box-shadow: 0 24px 50px -22px oklch(0.7 0.3 295 / 0.95);">Get started free <i data-lucide="arrow-right" style="width: 1rem; height: 1rem;"></i><span style="position: absolute; top: 0; bottom: 0; width: 35%; background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.32), transparent); animation: ls-sheen 4.5s ease-in-out infinite;"></span></a>
       </div>
     </div>
   </section>
 
-  <!-- CTA -->
-  <section class="landing-section relative z-10 max-w-5xl mx-auto px-6 lg:px-8 py-20">
-    <div class="fade-in glass-strong rounded-3xl p-12 md:p-16 text-center shadow-elegant relative overflow-hidden">
-      <div class="absolute inset-0 bg-gradient-glow opacity-40"></div>
-      <div class="relative">
-        <h2 class="font-display text-4xl md:text-5xl font-bold tracking-tight">Ready to build real skills?</h2>
-        <p class="mt-4 text-muted-foreground max-w-xl mx-auto">Start mastering English with Learning Skills — and discover Lisa along the way.</p>
-        <a href="{% url 'login' %}" class="btn btn-hero btn-xl mt-8">Get started free <i data-lucide="arrow-right" class="h-5 w-5"></i></a>
-      </div>
+  <footer style="position: relative; z-index: 10; border-top: 1px solid rgb(37 39 60 / 0.6);">
+    <div style="max-width: 78rem; margin: 0 auto; padding: 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; font-size: 0.8125rem; color: rgb(140 141 158);">
+      <span>© 2026 Learning Skills. Powered by Lisa.</span>
+      <div style="display: flex; gap: 1.5rem;"><a href="#levels" class="ls-footer-link" style="color: inherit;">Levels</a><a href="#skills" class="ls-footer-link" style="color: inherit;">Skills</a><a href="#lisa" class="ls-footer-link" style="color: inherit;">Lisa</a></div>
     </div>
-  </section>
-
-  <footer class="fade-in relative z-10 border-t border-border/60 py-8 text-center text-sm text-muted-foreground">
-    © 2026 Learning Skills. Powered by Lisa. Crafted with care.
   </footer>
 </div>
 {% endblock %}
 {% block scripts %}
-<script type="module" src="https://unpkg.com/@google/model-viewer@4.3.1/dist/model-viewer.min.js"></script>
-<script src="{% static 'app/scroll-reveal.js' %}" defer></script>
+<script>
+  (function () {
+    var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    document.querySelectorAll("[data-rise]").forEach(function (el) {
+      if (reduced) return;
+      var d = parseInt(el.getAttribute("data-rise-delay") || "0", 10);
+      el.style.opacity = "0";
+      el.style.animation = "ls-rise .8s cubic-bezier(.22,.61,.36,1) " + d + "ms forwards";
+    });
+
+    var revealEls = Array.prototype.slice.call(document.querySelectorAll("[data-reveal]"));
+    if (revealEls.length && !reduced) {
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var el = entry.target;
+          var d = parseInt(el.getAttribute("data-reveal-delay") || "0", 10);
+          setTimeout(function () {
+            el.style.opacity = "1";
+            el.style.transform = "none";
+          }, d);
+          obs.unobserve(el);
+        });
+      }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+      revealEls.forEach(function (el) {
+        el.style.opacity = "0";
+        el.style.transform = "translateY(26px)";
+        el.style.transition = "opacity .7s cubic-bezier(.22,.61,.36,1), transform .7s cubic-bezier(.22,.61,.36,1)";
+        obs.observe(el);
+      });
+    }
+
+    if (!reduced) {
+      var spot = document.getElementById("ls-spot");
+      if (spot) {
+        var raf = null, x = window.innerWidth / 2, y = window.innerHeight * 0.3;
+        var apply = function () {
+          spot.style.left = x + "px";
+          spot.style.top = y + "px";
+          raf = null;
+        };
+        window.addEventListener("pointermove", function (e) {
+          x = e.clientX; y = e.clientY;
+          if (!raf) raf = requestAnimationFrame(apply);
+        }, { passive: true });
+      }
+
+      var nodes = Array.prototype.slice.call(document.querySelectorAll("[data-parallax]"));
+      if (nodes.length) {
+        var pRaf = null;
+        var applyParallax = function () {
+          var y2 = window.scrollY || 0;
+          nodes.forEach(function (el) {
+            var s = parseFloat(el.getAttribute("data-parallax")) || 0;
+            var off;
+            if (el.hasAttribute("data-parallax-wrap")) {
+              var tile = parseFloat(el.getAttribute("data-parallax-wrap")) || 56;
+              off = -(((y2 * s) % tile) + tile) % tile;
+            } else {
+              off = -(150 * s) * Math.sin((y2 * s) / 320);
+            }
+            el.style.willChange = "transform";
+            el.style.transform = "translate3d(0," + off.toFixed(2) + "px,0)";
+          });
+          pRaf = null;
+        };
+        window.addEventListener("scroll", function () {
+          if (!pRaf) pRaf = requestAnimationFrame(applyParallax);
+        }, { passive: true });
+        applyParallax();
+      }
+    }
+  })();
+</script>
 {% endblock %}
