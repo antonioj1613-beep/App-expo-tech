@@ -53,11 +53,14 @@ def _auth_context(mode, **extra):
     return {"mode": mode, **extra}
 
 
-def _login_session(request, user):
+def _login_session(request, user, remember=True):
     # Rotate the session key on privilege escalation to prevent session fixation.
     request.session.cycle_key()
     request.session["user_id"] = user.id
     request.session["username"] = user.username
+    # "Keep me signed in" unchecked -> expire when the browser closes instead
+    # of riding out the normal SESSION_COOKIE_AGE.
+    request.session.set_expiry(0 if not remember else None)
 
 
 # ---------------------------------------------------------------------------
@@ -159,7 +162,7 @@ def login_view(request):
             return render(request, "auth.html", ctx)
 
         _clear_login_attempts(request, login)
-        _login_session(request, user)
+        _login_session(request, user, remember=bool(request.POST.get("remember")))
         return redirect("dashboard")
 
     return render(request, "auth.html", ctx)
