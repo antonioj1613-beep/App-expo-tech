@@ -2,7 +2,6 @@
 {% block title %}{% if mode == "login" %}Sign in — Learning Skills{% else %}Create account — Learning Skills{% endif %}{% endblock %}
 {% block body %}
 <div class="min-h-screen flex bg-background relative overflow-hidden">
-  <div class="pointer-events-none absolute inset-0 bg-gradient-mesh opacity-70"></div>
   <div class="pointer-events-none absolute inset-0 grid-bg opacity-30"></div>
 
   <div class="relative z-10 flex-1 flex flex-col px-6 py-8 lg:px-16">
@@ -18,7 +17,7 @@
     </div>
 
     <div class="flex-1 grid place-items-center py-12">
-      <div class="w-full max-w-sm glass-strong rounded-3xl p-8 shadow-elegant animate-fade-in">
+      <div class="w-full max-w-sm animate-fade-in">
         <p class="text-xs uppercase tracking-widest text-primary font-semibold mb-3">{% if mode == "login" %}Sign in{% else %}Sign up{% endif %}</p>
         <h1 class="font-display text-3xl font-bold tracking-tight">{% if mode == "login" %}Welcome back.{% else %}Create your account.{% endif %}</h1>
         <p class="mt-2 text-sm text-muted-foreground">
@@ -86,9 +85,9 @@
     </div>
   </div>
 
-  <div class="hidden lg:flex relative z-10 flex-1 items-center justify-center p-12 overflow-hidden">
+  <div class="hidden lg:flex relative z-10 flex-1 items-center justify-center p-12 overflow-hidden bg-secondary border-l border-border">
     <div class="absolute -top-24 -right-24 h-[28rem] w-[28rem] rounded-full bg-gradient-primary opacity-30 blur-3xl pointer-events-none"></div>
-    <div class="relative max-w-md glass-strong rounded-3xl p-10 shadow-elegant">
+    <div class="relative max-w-md">
       <h2 class="font-display text-4xl font-bold tracking-tight leading-tight">Speak with confidence.</h2>
       <p class="mt-4 text-muted-foreground leading-relaxed">
         An AI tutor that hears your level and adapts —
