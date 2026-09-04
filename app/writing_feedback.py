@@ -28,6 +28,7 @@ Speaking-specific prompt don't fit a single essay submission.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import time
 
@@ -35,6 +36,8 @@ import httpx
 
 from .gamification import SKILL_ERROR_CATEGORIES
 from .tutor_memory import format_error_context_for_prompt, get_top_error_patterns, record_error_pattern
+
+logger = logging.getLogger(__name__)
 
 GRADING_TIMEOUT_SECONDS = 20.0  # a submit-time call the student is waiting on,
 # same graceful-degradation shape as Speaking's post-session extraction,
@@ -188,6 +191,17 @@ def grade_writing_submission(
                 break
             time.sleep(GEMINI_503_RETRY_BACKOFF_SECONDS[attempt])
         if response.status_code != 200:
+            # Silent to the student by design (placeholder fallback), but NOT silent
+            # to us: a 429 here means the daily free-tier quota for this specific
+            # model is exhausted (discovered live 2026-09-02 -- every submission
+            # fell back to the word-count-only placeholder for the rest of the day,
+            # with zero visibility until a user reported "grading ignores grammar").
+            logger.warning(
+                "Gemini writing grading non-200 (falling back to placeholder): status=%s model=%s body=%s",
+                response.status_code,
+                model,
+                str(response.text)[:500],
+            )
             return None  # covers 429/503-after-retries/etc same as any other failure -- straight to placeholder
         candidates = response.json().get("candidates") or []
         if not candidates:

@@ -196,6 +196,7 @@ body {
 .hero-float-a { animation: hero-shape-bob 7.5s ease-in-out infinite; }
 .hero-float-b { animation: hero-shape-bob 9s ease-in-out infinite; animation-delay: 2.2s; }
 .hero-float-c { animation: hero-shape-bob 6.5s ease-in-out infinite; animation-delay: 1s; }
+.hero-float-d { animation: hero-shape-bob 8.2s ease-in-out infinite; animation-delay: 3.4s; }
 @keyframes hero-shape-bob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-16px); }
@@ -586,5 +587,5 @@ textarea.field { padding: 0.75rem; height: auto; resize: none; line-height: 1.6;
   }
   .gradient-drift { animation: none; }
   .card-interactive:hover { transform: none; }
-  .hero-float-a, .hero-float-b, .hero-float-c, .hero-spin-cw, .hero-spin-ccw, .hero-sway { animation: none; }
+  .hero-float-a, .hero-float-b, .hero-float-c, .hero-float-d, .hero-spin-cw, .hero-spin-ccw, .hero-sway { animation: none; }
 }
